@@ -1,0 +1,105 @@
+name: PowerShell CI
+run-name: PowerShell CI • ${{ github.event_name }} • ${{ github.ref_name }}
+
+# Continuous Integration workflow for PowerShell MCP Server
+# Performs code analysis and testing on multiple platforms
+# Triggered on push to main/dev branches and pull requests to main
+
+on:
+  push:
+    branches: [main, dev]
+    # Run CI only when PowerShell sources or tests are changed
+    paths:
+      - 'src/**/*.ps1'
+      - 'tests/**/*.ps1'
+  pull_request:
+    branches: [main]
+    # Run CI for PRs that modify PowerShell sources or tests
+    paths:
+      - 'src/**/*.ps1'
+      - 'tests/**/*.ps1'
+
+  workflow_dispatch:
+jobs:
+  analyze:
+    name: Analyze • ${{ matrix.os }} • pwsh ${{ matrix.pwsh-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        #  os: [ubuntu-latest, windows-latest, macos-latest]
+        pwsh-version: ["7.4"]
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install PowerShell modules
+        shell: pwsh
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
+          Get-Module -ListAvailable | Where-Object { $_.Name -eq 'PSScriptAnalyzer' }
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          $path = './src'
+          $results = Invoke-ScriptAnalyzer -Path $path -Settings ./config.analyzer.psd1 -Recurse
+          $errorCount = (($results | Where-Object { $_.Severity -eq 'Error' }) | Measure-Object ).Count
+          if ($errorCount -ne 0) {
+            Write-Error "PSScriptAnalyzer found issues"
+            $results | Where-Object { $_.Severity -eq 'Error' } | Format-List -Force
+           exit 1
+          }
+          Write-Output "✅ PSScriptAnalyzer passed"
+
+      - name: Run CI Script
+        shell: pwsh
+        run: |
+          Write-Output "Run PowerShell CI Script"
+          ./ci.ps1 -action hello
+          # todo: replace with actual CI actions
+
+  test:
+    name: Tests • ${{ matrix.os }} • pwsh ${{ matrix.pwsh-version }}
+    needs: analyze
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        #  os: [ubuntu-latest, windows-latest, macos-latest]
+        pwsh-version: ["7.4"]
+      fail-fast: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install PowerShell modules
+        shell: pwsh
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module -Name Pester -Force -SkipPublisherCheck
+          Get-Module -ListAvailable | Where-Object { $_.Name -eq 'Pester' }
+
+      - name: Run Pester Tests
+        shell: pwsh
+        run: |
+          $config = Import-PowerShellDataFile ./config.tests.psd1
+          $result = Invoke-Pester -Configuration $config
+          if ($result.FailedCount -gt 0) {
+            Write-Error "❌ $($result.FailedCount) tests failed"
+            exit 1
+          }
+          Write-Output "✅ All tests passed"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pester-${{ matrix.os }}-pwsh-${{ matrix.pwsh-version }}
+          path: |
+            ./coverage/TestCoverage.xml
+            ./coverage/TestResult.xml
