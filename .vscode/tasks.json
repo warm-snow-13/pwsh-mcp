@@ -1,0 +1,93 @@
+{
+  /*
+  -- Run Pester Tests (Detailed) ---
+
+    "type": "shell",
+    "command": "pwsh",
+    "args": [
+      "-NoProfile",
+      "-NoLogo",
+      "-Command",
+      "Invoke-Pester -Path '${workspaceFolder}/tests' -Output Detailed"
+    ],
+    "group": "test",
+
+  */
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "CI: Unit Tests",
+      "detail": "Runs all Pester tests located in the 'tests' directory with detailed output.",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-NoLogo",
+        "-File",
+        "${workspaceFolder}/ci.ps1",
+        "-action",
+        "test"
+      ],
+      "group": "test",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "CI: Code Analysis",
+      "detail": "Runs PSScriptAnalyzer using project settings.",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-NoLogo",
+        "-File",
+        "${workspaceFolder}/ci.ps1",
+        "-action:'analyze'"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "◉ AUTOMATION: jarvis: build",
+      "detail": "Builds the project using the jarvis automation script.",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-NoLogo",
+        "-File",
+        "${workspaceFolder}/jarvis.ps1",
+        "-action:'build'"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "◉ AUTOMATION: jarvis: deploy",
+      "detail": "Deploys the project using the jarvis automation script.",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-NoLogo",
+        "-File",
+        "${workspaceFolder}/jarvis.ps1",
+        "-action:'deploy'"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always"
+      }
+    }
+  ]
+}

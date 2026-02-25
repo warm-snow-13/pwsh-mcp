@@ -1,0 +1,18 @@
+{
+	"servers": {
+		"pwsh.mcp.server1": {
+			"type": "stdio",
+			"command": "pwsh",
+			"args": [
+				"-NoLogo",
+				"-NoProfile",
+				"-File",
+				"src/server1.ps1"
+			],
+			"dev": {
+				"watch": "src/**/*.ps1"
+			}
+		}
+	},
+	"inputs": []
+}

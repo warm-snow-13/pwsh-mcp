@@ -1,0 +1,194 @@
+{
+  "window.title": "● ${rootName} - ${activeEditorShort}",
+  "window.autoDetectColorScheme": true,
+  "workbench.preferredDarkColorTheme": "Monokai Dimmed",
+  "workbench.preferredLightColorTheme": "Default Light Modern",
+  "workbench.editor.highlightModifiedTabs": true,
+  "workbench.editor.limit.value": 5,
+  "workbench.settings.showAISearchToggle": true,
+  "files.associations": {
+    ".wb": "markdown",
+    ".where": "markdown",
+    "*.ps1xml": "xml",
+    "*.Format.ps1xml": "xml",
+    "*.Types.ps1xml": "xml"
+  },
+  /*
+    MARK: Language Specific Editor Settings
+    see: https://code.visualstudio.com/docs/getstarted/settings
+  */
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "editor.wordWrapColumn": 100,
+    "editor.wrappingStrategy": "advanced"
+  },
+  "[shellscript]": {
+    "files.eol": "\n"
+  },
+  "[jsonc]": {
+    "editor.formatOnSave": true,
+    "editor.quickSuggestions": {
+      "strings": true
+    },
+    "editor.suggest.insertMode": "replace"
+  },
+  "[json]": {
+    "editor.quickSuggestions": {
+      "strings": true
+    },
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "editor.suggest.insertMode": "replace"
+  },
+  "[plaintext]": {
+    "editor.suggest.showSnippets": true,
+    "editor.suggest.showWords": true,
+    "editor.suggestOnTriggerCharacters": true,
+    "editor.suggest.localityBonus": true,
+    "editor.suggestSelection": "recentlyUsed",
+    "editor.wordBasedSuggestions": "matchingDocuments",
+    "editor.parameterHints.enabled": true,
+    "editor.fontFamily": "'JetBrains Mono', Menlo, Monaco",
+    "editor.fontLigatures": true,
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 100,
+    "editor.wrappingStrategy": "advanced",
+    "editor.minimap.side": "left"
+  },
+  "[yaml]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.autoIndent": "keep",
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.defaultColorDecorators": "never",
+    "editor.quickSuggestions": {
+      "strings": true,
+      "other": true,
+      "comments": false
+    }
+  },
+  "editor.cursorSurroundingLines": 1,
+  "editor.folding": true,
+  "editor.fontFamily": "'JetBrains Mono','Fira Code Retina',Menlo,Monaco,monospace",
+  "editor.fontLigatures": true,
+  "editor.hideCursorInOverviewRuler": false,
+  "editor.minimap.autohide": "scroll",
+  "editor.minimap.maxColumn": 100,
+  "editor.minimap.sectionHeaderLetterSpacing": 5,
+  "editor.minimap.showSlider": "always",
+  "editor.minimap.side": "right",
+  "editor.minimap.size": "proportional",
+  "editor.overviewRulerBorder": false,
+  "editor.parameterHints.enabled": true,
+  "editor.stickyScroll.enabled": true,
+  "editor.suggest.showStatusBar": true,
+  "editor.wordWrap": "on",
+  "editor.wordWrapColumn": 100,
+  "editor.wrappingStrategy": "advanced",
+  "explorer.fileNesting.enabled": true,
+  "files.autoSave": "onFocusChange",
+  // "files.autoSaveDelay": 2500,
+  "files.autoSaveWhenNoErrors": true,
+  "files.encoding": "utf8bom",
+  "files.trimTrailingWhitespace": true,
+  "gitlens.blame.avatars": false,
+  "gitlens.views.branches.avatars": false,
+  "gitlens.views.contributors.avatars": false,
+  "telemetry.feedback.enabled": false,
+  "terminal.integrated.ignoreBracketedPasteMode": true,
+  "terminal.integrated.stickyScroll.enabled": true,
+  "terminal.integrated.suggest.enabled": true,
+  "cSpell.ignorePaths": [
+    "package-lock.json",
+    "node_modules",
+    "vscode-extension",
+    ".git",
+    ".vscode",
+    ".vscode-insiders"
+  ],
+  "cSpell.languageSettings": [
+    {
+      "languageId": "*",
+      "locale": "*",
+      "allowCompoundWords": true
+    }
+  ],
+  "cSpell.autocorrect": true,
+  "cSpell.customDictionaries": {
+    "psmcp-words": {
+      "path": "./.vscode/.cspell.dict.txt",
+      "addWords": true,
+      "description": "psmcp-dictionary"
+    }
+  },
+  /*
+    MARK: PowerShell
+    PowerShell Extension Settings
+    see: https://marketplace.visualstudio.com/items?itemName=ms-vscode.PowerShell
+  */
+  "powershell.buttons.showRunButtons": true,
+  "powershell.codeFormatting.autoCorrectAliases": true,
+  "powershell.codeFormatting.useCorrectCasing": true,
+  "powershell.enableReferencesCodeLens": true,
+  "powershell.helpCompletion": "Disabled",
+  "powershell.integratedConsole.focusConsoleOnExecute": false,
+  "powershell.integratedConsole.forceClearScrollbackBuffer": true,
+  "powershell.integratedConsole.suppressStartupBanner": true,
+  "powershell.pester.codeLens": true,
+  "powershell.pester.useLegacyCodeLens": false,
+  "powershell.scriptAnalysis.settingsPath": "config.analyzer.psd1",
+  "[powershell]": {
+    "editor.wordWrapColumn": 100,
+    "editor.wordWrap": "on",
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "editor.formatOnPaste": true
+  },
+  "coverage-gutters.showGutterCoverage": true,
+  "coverage-gutters.showLineCoverage": true,
+  "coverage-gutters.coverageFileNames": [
+    "lcov.info",
+    "cov.xml",
+    "coverage.xml",
+    "cobertura.xml",
+    "jacoco.xml",
+    "coverage.cobertura.xml",
+    "TestCoverage.xml"
+  ],
+  /*
+    MARK: COPilot
+  */
+  "chat.promptFilesLocations": {
+    ".github/prompts": true,
+    ".sandbox/prompts": true
+  },
+  "chat.mcp.serverSampling": {
+    "sc-mcp-ps/.vscode/mcp.json: pwsh.mcp.server1": {
+      "allowedModels": [
+        "copilot/gpt-5-mini",
+        "copilot/gpt-4.1"
+      ]
+    }
+  },
+  "chat.useAgentSkills": true,
+  "chat.customAgentInSubagent.enabled": true,
+  "chat.agentSessionsViewLocation": "view",
+  "chat.promptFiles": true,
+  "chat.todoListTool.writeOnly": true,
+  "chatgpt.commentCodeLensEnabled": false,
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "github.copilot.enable": {
+    "*": true,
+    "dotenv": false,
+    "markdown": true,
+    "plaintext": true
+  },
+  "debug.toolBarLocation": "commandCenter",
+  "errorLens.fontSize": "-1px",
+  "powershell.debugging.createTemporaryIntegratedConsole": true,
+  "git.autorefresh": true,
+  "gitlens.views.repositories.autoRefresh": true
+  /* End of settings */
+}

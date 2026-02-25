@@ -1,0 +1,94 @@
+{
+  /*
+  .SYNOPSIS:
+    PowerShell Snippets
+
+  .NOTES:
+  ---
+  [REF:](https://code.visualstudio.com/docs/editor/userdefinedsnippets)
+  [SEE:](https://macromates.com/manual/en/snippets)
+  ---
+  */
+  ".customobject": {
+    "prefix": ".customobject",
+    "description": "Insert PSCustomObject",
+    "body": [
+      "[PSCustomObject]@{",
+      "    Key1 = 'Value'",
+      "    Key2 = 'Value'",
+      "}",
+    ]
+  },
+  "ps.file-header": {
+    "prefix": ".header",
+    "description": "Output a file header with the file name and date",
+    "body": [
+      "<#",
+      ".SYNOPSIS",
+      " cmdlet: $UUID",
+      ".DESCRIPTION",
+      " file: $TM_FILENAME",
+      ".NOTES",
+      ".LINK",
+        "---",
+        "⏺ [REF:](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core)",
+        "⏺ [REF:](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about)",
+        "---",
+      "#>"
+    ]
+  },
+  "ps.to.function": {
+    /*
+    ⏺ Function Snippet
+    ⏺ Wrap Clipboard in function block
+    */
+    "scope": "powershell",
+    "prefix": [
+      "--fn",
+    ],
+    "body": [
+      "function fn.draft.${RANDOM_HEX} {",
+      "# MARK: ⚠️",
+      "\t${CLIPBOARD}",
+      "}",
+      " ",
+    ],
+    "description": "Wrap Clipboard in function block"
+  },
+  ".cmdlet": {
+    /*
+    ⏺ CmdletBinding Snippet
+    ⏺ Insert CmdletBinding and param block
+    */
+    "prefix": ".cmdlet",
+    "scope": "powershell",
+    "body": [
+      "[CmdletBinding()]",
+      "param()",
+      "Write-Verbose -Message ([string]::Format('{0} started.', \\$MyInvocation.MyCommand.Name))",
+      "$0",
+    ],
+    "description": "Insert CmdletBinding and param block"
+  },
+  ".PSCustomObject": {
+    "prefix": ".CustomObject",
+    "scope": "powershell",
+    "body": [
+      "[PSCustomObject]@{",
+      "    Name = 'Value'",
+      "}",
+    ],
+    "description": "Insert PSCustomObject"
+  },
+  ".ref": {
+    /*
+    ⏺ Reference Snippet
+    */
+    "prefix": ".ref",
+    "scope": "powershell",
+    "body": [
+      "$BLOCK_COMMENT_START ⏺ [REF:](${CLIPBOARD}) $BLOCK_COMMENT_END",
+    ],
+    "description": "Insert reference block"
+  }
+}

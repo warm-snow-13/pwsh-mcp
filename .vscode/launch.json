@@ -1,0 +1,29 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "PowerShell: +mcp +dev server1",
+      "type": "PowerShell",
+      "request": "launch",
+      "script": "${workspaceFolder}/src/server1.ps1",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Debug tests with Code Coverage",
+      "type": "PowerShell",
+      "request": "launch",
+      "script": "${workspaceFolder}/tests/psmcp.InputSchema.tests.ps1",
+      "args": [
+        "-Path",
+        "'${file}'",
+        "-Output",
+        "${config:powershell.pester.debugOutputVerbosity}",
+        "-CodeCoverage"
+      ],
+      "cwd": "${file}"
+    }
+  ]
+}

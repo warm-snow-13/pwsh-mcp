@@ -1,0 +1,4 @@
+DontShow
+osascript
+psmcp
+pwshmcp

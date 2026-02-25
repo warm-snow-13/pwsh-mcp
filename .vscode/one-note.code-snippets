@@ -1,0 +1,31 @@
+{
+  /*
+  Synopsis: OneNote Snippets
+  @see:
+    -- https://code.visualstudio.com/docs/editing/userdefinedsnippets
+    -- https://code.visualstudio.com/docs/editing/userdefinedsnippets#_snippet-syntax
+  */
+  "◉.one-note-section--date-guid": {
+    "prefix": "--ss",
+    "body": [
+      "--[$CURRENT_YEAR.$CURRENT_MONTH.$CURRENT_DATE]----------------------------------------------[$UUID]--",
+      "",
+      ":: ${1:${RANDOM_HEX}}",
+      "",
+      "$0"
+    ],
+    "description": "Separator 100 chars: Text Block"
+  },
+  "◉.one-note--add-context": {
+    "prefix": "--ctx",
+    "body": [
+      "---[CONTEXT:🔻]--[ID:$RANDOM_HEX] --[DATE:$CURRENT_YEAR.$CURRENT_MONTH.$CURRENT_DATE]---",
+      "",
+      "$CLIPBOARD",
+      "",
+      "---[CONTEXT:🔺]---",
+      "$1"
+    ],
+    "description": "Separator with Random: Text Block"
+  }
+}

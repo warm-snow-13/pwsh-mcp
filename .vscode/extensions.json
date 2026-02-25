@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "github.copilot-chat",
+    "github.vscode-github-actions",
+    "ms-vscode.vscode-json",
+    "pspester.pester-test",
+    "redhat.vscode-yaml",
+    "ryanluker.vscode-coverage-gutters",
+    "streetsidesoftware.code-spell-checker",
+    "ozzafar.debugmcpextension",
+    "davidanson.vscode-markdownlint",
+    "ms-vscode.powershell"
+  ]
+}
