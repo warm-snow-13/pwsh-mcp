@@ -1,0 +1,39 @@
+# PowerShell MCP: Git ignore rules
+
+# Goal: keep build/test artifacts and local-only files out of Git,
+# while allowing configuration and documentation to be versioned.
+
+# Build / distribution
+build/
+dist/
+
+# Logs
+logs/
+*.log
+
+# OS / editor clutter
+.DS_Store
+*.swp
+*.swo
+.idea/
+
+# Test / coverage data
+# XML reports from test and coverage runs (keeps coverage/ folder itself).
+**/TestResult.xml
+**/TestCoverage.xml
+!coverage/.gitkeep
+
+# VS Code configuration files
+# VS Code workspace settings are intentionally tracked.
+!.vscode/
+
+# CI scripts
+!ci.ps1
+!jarvis.ps1
+
+# Local draft / sandbox files
+.sandbox/
+scratch.ps1
+
+# Local tool output
+.gemini/
