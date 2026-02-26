@@ -30,7 +30,7 @@ CompanyName = 'Unknown'
 Copyright = '(c) 2026 igor.stepanushko@gmail.com. Licensed under the MIT License.'
 
 # Description of the functionality provided by this module
-Description = 'PowerShell module for creating MCP servers'
+Description = 'Expose custom PowerShell functions through a lightweight, pure PowerShell MCP server to integrate with AI agents.'
 
 # Minimum version of the PowerShell engine required by this module
 PowerShellVersion = '7.4.0'
@@ -101,7 +101,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = 'AI','MCP','Server','Copilot','Module'
+        Tags = 'AI','MCP','Agent','Server','Automation','Copilot','Claude','Gemini'
 
         # A URL to the license for this module.
         LicenseUri = 'https://github.com/warm-snow-13/pwsh-mcp/blob/main/LICENSE'

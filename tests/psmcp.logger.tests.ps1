@@ -11,7 +11,7 @@ BeforeAll {
     $modulePath = Join-Path -Path $PSScriptRoot -ChildPath '../src/pwsh.mcp/pwsh.mcp.psm1'
     Import-Module $modulePath -Force
 
-    $testLogPath = 'TestDrive: /tmp/test-debug.log'
+    $testLogPath = 'TestDrive:/tmp/test-debug.log'
     $env:MCP_PWSH_SERVER_LOG_PATH = $testLogPath
 }
 
