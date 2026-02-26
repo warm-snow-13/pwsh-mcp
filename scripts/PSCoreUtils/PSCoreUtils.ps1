@@ -214,7 +214,7 @@ function psmcp.new_module_manifest {
             'Module'
         )
         CompatiblePSEditions = 'Core'
-        PowerShellVersion    = '7.4.0'
+        PowerShellVersion    = '7.5.0'
         LicenseUri           = 'https://github.com/warm-snow-13/pwsh-mcp/blob/main/LICENSE'
         IconUri              = 'https://github.com/warm-snow-13/pwsh-mcp/blob/main/docs/assets/psmcp1.png'
         Prerelease           = 'dev'

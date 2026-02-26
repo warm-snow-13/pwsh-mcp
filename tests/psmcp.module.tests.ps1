@@ -8,7 +8,7 @@
     - Imports and exports expected commands (e.g. New-MCPServer, Add-MCPServer).
     - Contains correct metadata: semantic version, GUID, CompatiblePSEditions, PrivateData tags, LicenseURI.
 
-    Tests are idempotent, clean up module state after run, and target PowerShell 7.4+ for CI and local execution.
+    Tests are idempotent, clean up module state after run, and target PowerShell 7.5+ for CI and local execution.
 
 #>
 
@@ -167,7 +167,7 @@ Describe 'PSMCP Module Manifest' -Tag 'ModuleManifest' {
         }
 
         It 'Should have expected minimum PowerShellVersion value' {
-            ([Version]$Script:moduleInformation.PowerShellVersion) | Should -Be ([Version]'7.4.0')
+            ([Version]$Script:moduleInformation.PowerShellVersion) | Should -Be ([Version]'7.5.0')
         }
 
     }

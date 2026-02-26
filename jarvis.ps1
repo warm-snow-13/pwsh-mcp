@@ -17,7 +17,7 @@
     - hello: Prints basic diagnostics info.
 
 #>
-#Requires -Version 7.4
+#Requires -Version 7.5
 #Requires -Modules @{ ModuleName='Pester'; ModuleVersion='5.7.0' }
 #Requires -Modules @{ ModuleName='PSScriptAnalyzer'; ModuleVersion='1.24.0' }
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(
