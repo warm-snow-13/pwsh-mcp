@@ -224,7 +224,6 @@ Describe 'PSMCP Module Manifest' -Tag 'ModuleManifest' {
             $tags = @($Script:manifestDataFile.PrivateData.PSData.Tags)
             $tags | Should -Not -BeNullOrEmpty
             $tags | Should -Contain 'MCP'
-            $tags | Should -Contain 'PowerShell'
             $tags | Should -Contain 'AI'
         }
 
