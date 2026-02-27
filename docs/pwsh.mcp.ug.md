@@ -314,6 +314,41 @@ Use a relative path to the server script to allow sharing the configuration acro
 }
 ```
 
+### Claude Desktop Application
+
+Manual Config (for custom/advanced servers)
+
+Open Claude Desktop → Settings → Developer → Edit Config. This opens claude_desktop_config.json.
+Add your server entry.
+
+Example config for a PowerShell MCP server:
+
+```jsonc
+{
+  "mcpServers": {
+    "my-server-1": {
+      "command": "/usr/local/bin/pwsh",
+      "args": [
+        "-NoLogo",
+        "-NoProfile",
+        "-File",
+        "/Users/<User-Name>/Projects/pwsh-mcp/samples/psmcp_hello_world.ps1"
+      ]
+    }
+  }
+}
+```
+
+Save the file, then fully quit and restart Claude Desktop.
+
+The config files locations:
+
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+**Reference:**
+[Connect to local MCP servers](https://modelcontextprotocol.io/docs/develop/connect-local-servers)
+
 ## Testing MCP Server
 
 You can test the server by using @modelcontextprotocol/inspector, any stdio-compatible client, or sending JSON-RPC messages to stdin.

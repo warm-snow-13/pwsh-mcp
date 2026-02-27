@@ -31,9 +31,9 @@
 
 Describe 'New-MCP VSCode configuration' -Tag 'code', 'config' {
     BeforeAll {
-        # Set debug and verbose preferences to Continue for test diagnostics
+        # Set debug and verbose preferences to SilentlyContinue
         Get-Item Variable:/DebugPreference, Variable:/VerbosePreference |
-        Set-Variable -Value ([System.Management.Automation.ActionPreference]::Continue) -PassThru |
+        Set-Variable -Value ([System.Management.Automation.ActionPreference]::SilentlyContinue) -PassThru |
         Format-Table -Force -Property Name, Value
 
         # Import the PSMCP module from the src directory

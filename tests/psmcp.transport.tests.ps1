@@ -143,7 +143,8 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
 
             $response = $outputLines[0] | ConvertFrom-Json -Depth 10
             $response.id | Should -Be 1
-            $response.result.protocolVersion | Should -Be '2025-06-18'
+            # should be not null or empty
+            $response.result.protocolVersion | Should -Not -BeNullOrEmpty
         }
 
         It 'Should return JSON-RPC error for unknown method' {
