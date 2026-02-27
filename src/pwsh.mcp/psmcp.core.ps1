@@ -365,7 +365,7 @@ function mcp.requestHandler {
             # issue: copilot-cli: Support for MCP Protocol Version 2025-11-25 (#1490)
             if ([string]($request.params?.protocolVersion) -eq '2025-06-18') {
                 # fallback for older protocol version - adjust response shape if needed
-                # warkaround for clientInfo":{"name":"github-copilot-developer","version":"1.0.0"}
+                # workaround for clientInfo":{"name":"github-copilot-developer","version":"1.0.0"}
                 $response.result.protocolVersion = '2025-06-18'
             }
 
