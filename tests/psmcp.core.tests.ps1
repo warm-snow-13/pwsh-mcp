@@ -183,6 +183,28 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
             $result.result.protocolVersion | Should -Be '2025-06-18'
             $result.result.capabilities | Should -Not -BeNullOrEmpty
         }
+
+        It 'Should return 2025-11-25 protocol when requested by client' {
+            $request = @{
+                jsonrpc = '2.0'
+                id      = 2
+                method  = 'initialize'
+                params  = @{
+                    protocolVersion = '2025-11-25'
+                    clientInfo      = @{
+                        name    = 'test-client'
+                        version = '1.0.0'
+                    }
+                }
+            }
+
+            $result = mcp.requestHandler -request $request -tools $tools
+
+            $result.jsonrpc | Should -Be '2.0'
+            $result.id | Should -Be 2
+            $result.result.protocolVersion | Should -Be '2025-11-25'
+            $result.result.capabilities | Should -Not -BeNullOrEmpty
+        }
     }
 
     Context 'mcp.requestHandler - tools/list' {

@@ -348,7 +348,7 @@ function mcp.requestHandler {
             # Method: initialize
             # https://modelcontextprotocol.io/specification/versioning
             $response.result = [ordered]@{
-                protocolVersion = '2025-06-18'
+                protocolVersion = '2025-11-25'
                 serverInfo      = [ordered]@{
                     name    = ($MyInvocation.MyCommand.Module.Name ?? 'PSMCP')
                     version = ([string]($MyInvocation.MyCommand.Module.Version) ?? '0.0.0')
@@ -359,6 +359,16 @@ function mcp.requestHandler {
                     }
                 }
             }
+
+            # todo: remove when copilot-cli supports MCP Protocol Version 2025-11-25
+            # https://github.com/github/copilot-cli/issues/1490
+            # issue: copilot-cli: Support for MCP Protocol Version 2025-11-25 (#1490)
+            if ([string]($request.params?.protocolVersion) -eq '2025-06-18') {
+                # fallback for older protocol version - adjust response shape if needed
+                # workaround for clientInfo":{"name":"github-copilot-developer","version":"1.0.0"}
+                $response.result.protocolVersion = '2025-06-18'
+            }
+
             return $response
         }
         'notifications/initialized' {
@@ -564,6 +574,9 @@ function New-MCPServer {
 
     .DESCRIPTION
         Prepares server settings, builds tool schemas from FunctionInfo array and starts the stdio main loop.
+        Read more:
+        - https://github.com/warm-snow-13/pwsh-mcp/blob/main/README.md
+        - https://github.com/warm-snow-13/pwsh-mcp/blob/main/docs/pwsh.mcp.ug.md
 
     .PARAMETER functionInfo
         Array of FunctionInfo objects representing PowerShell functions to expose as tools.
