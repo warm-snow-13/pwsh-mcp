@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - (Nothing yet)
 
+## [0.1.2] - 2026-02-27
+
+### Changed
+
+- Completed packaging and metadata verification.
+- Published module [pwsh.mcp](https://www.powershellgallery.com/packages/pwsh.mcp/0.1.2) to PowerShell Gallery.
+
 ## [0.1.1] - 2026-02-27
 
 ### Changed

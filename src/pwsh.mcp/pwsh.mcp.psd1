@@ -12,7 +12,7 @@
 RootModule = 'pwsh.mcp.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.1.1'
+ModuleVersion = '0.1.2'
 
 # Supported PSEditions
 CompatiblePSEditions = 'Core'
@@ -92,11 +92,11 @@ AliasesToExport = @()
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
 PrivateData = @{
 
-    #Logging of this module
-    Logging = 'System.Collections.Hashtable'
-
     #Experimental of this module
     Experimental = 'System.Collections.Hashtable'
+
+    #Logging of this module
+    Logging = 'System.Collections.Hashtable'
 
     PSData = @{
 
