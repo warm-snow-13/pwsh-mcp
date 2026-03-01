@@ -35,5 +35,6 @@ logs/
 .sandbox/
 scratch.ps1
 
-# Local tool output
+# AI assistant sessions and data
 .gemini/
+.claude/

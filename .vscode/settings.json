@@ -4,6 +4,7 @@
   "workbench.preferredDarkColorTheme": "Monokai Dimmed",
   "workbench.preferredLightColorTheme": "Default Light Modern",
   "workbench.editor.highlightModifiedTabs": true,
+  "workbench.editor.limit.enabled": true,
   "workbench.editor.limit.value": 5,
   "workbench.settings.showAISearchToggle": true,
   "files.associations": {
@@ -14,8 +15,8 @@
     "*.Types.ps1xml": "xml"
   },
   /*
-    MARK: Language Specific Editor Settings
-    see: https://code.visualstudio.com/docs/getstarted/settings
+    Per-language editor settings. See:
+    https://code.visualstudio.com/docs/getstarted/settings
   */
   "[markdown]": {
     "editor.wordWrap": "on",
@@ -88,14 +89,15 @@
   "editor.wrappingStrategy": "advanced",
   "explorer.fileNesting.enabled": true,
   "files.autoSave": "onFocusChange",
-  // "files.autoSaveDelay": 2500,
   "files.autoSaveWhenNoErrors": true,
-  "files.encoding": "utf8bom",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
   "gitlens.blame.avatars": false,
   "gitlens.views.branches.avatars": false,
   "gitlens.views.contributors.avatars": false,
   "telemetry.feedback.enabled": false,
+  "telemetry.telemetryLevel": "off",
   "terminal.integrated.ignoreBracketedPasteMode": true,
   "terminal.integrated.stickyScroll.enabled": true,
   "terminal.integrated.suggest.enabled": true,
@@ -123,9 +125,9 @@
     }
   },
   /*
-    MARK: PowerShell
-    PowerShell Extension Settings
-    see: https://marketplace.visualstudio.com/items?itemName=ms-vscode.PowerShell
+    PowerShell extension settings.
+    See: https://marketplace.visualstudio.com/items?itemName=ms-vscode.PowerShell
+    ScriptAnalyzer rules referenced in `config.analyzer.psd1` (workspace root).
   */
   "powershell.buttons.showRunButtons": true,
   "powershell.codeFormatting.autoCorrectAliases": true,
@@ -143,7 +145,8 @@
     "editor.wordWrap": "on",
     "editor.formatOnSave": true,
     "editor.formatOnType": true,
-    "editor.formatOnPaste": true
+    "editor.formatOnPaste": true,
+    "files.encoding": "utf8bom",
   },
   "coverage-gutters.showGutterCoverage": true,
   "coverage-gutters.showLineCoverage": true,
@@ -156,15 +159,14 @@
     "coverage.cobertura.xml",
     "TestCoverage.xml"
   ],
-  /*
-    MARK: COPilot
-  */
+  /* GitHub Copilot / Chat settings */
   "chat.promptFilesLocations": {
     ".github/prompts": true,
     ".sandbox/prompts": true
   },
+  /* MCP server sampling configuration */
   "chat.mcp.serverSampling": {
-    "sc-mcp-ps/.vscode/mcp.json: pwsh.mcp.server1": {
+    "pwsh-mcp/.vscode/mcp.json: pwsh.mcp.server1": {
       "allowedModels": [
         "copilot/gpt-5-mini",
         "copilot/gpt-4.1"
@@ -190,5 +192,5 @@
   "powershell.debugging.createTemporaryIntegratedConsole": true,
   "git.autorefresh": true,
   "gitlens.views.repositories.autoRefresh": true
-  /* End of settings */
+  /* End of workspace settings */
 }
