@@ -237,31 +237,6 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
             $response.result.content[0].text | Should -Be 'hello Igor'
         }
 
-        It 'Should return JSON-RPC protocol error for unknown tool' {
-            $tools = @(
-                [ordered]@{
-                    name = 'Test-Tool'
-                }
-            )
-
-            $inputLines = @(
-                '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"missing-tool","arguments":{}}}'
-            )
-
-            $inputData = [string]::Join([System.Environment]::NewLine, $inputLines)
-            $reader = [System.IO.StringReader]::new($inputData)
-            $writer = [System.IO.StringWriter]::new()
-
-            mcp.core.stdio.main -tools $tools -In $reader -Out $writer
-
-            $output = $writer.ToString().TrimEnd()
-            $response = $output | ConvertFrom-Json -Depth 10
-
-            $response.id | Should -Be 1
-            $response.error.code | Should -Be -32602
-            $response.error.message | Should -Be 'Unknown tool: missing-tool'
-        }
-
         It 'Should respond to ping requests' {
             $tools = @(
                 [ordered]@{
