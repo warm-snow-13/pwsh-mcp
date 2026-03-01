@@ -24,7 +24,7 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
         It 'Should process initialize request and stop on shutdown' {
             $tools = @(
                 [ordered]@{
-                    name = 'dummy-tool'
+                    name = 'Test-Tool'
                 }
             )
 
@@ -203,7 +203,7 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
         }
 
         It 'Should execute tools/call and return content' {
-            function global:dummy-tool {
+            function global:Test-Tool {
                 param(
                     [Parameter(Mandatory)]
                     [string]$Name
@@ -214,12 +214,12 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
 
             $tools = @(
                 [ordered]@{
-                    name = 'dummy-tool'
+                    name = 'Test-Tool'
                 }
             )
 
             $inputLines = @(
-                '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"dummy-tool","arguments":{"Name":"Igor"}}}'
+                '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"Test-Tool","arguments":{"Name":"Igor"}}}'
             )
 
             $inputData = [string]::Join([System.Environment]::NewLine, $inputLines)
@@ -237,10 +237,10 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
             $response.result.content[0].text | Should -Be 'hello Igor'
         }
 
-        It 'Should surface tool errors in tools/call response' {
+        It 'Should return JSON-RPC protocol error for unknown tool' {
             $tools = @(
                 [ordered]@{
-                    name = 'dummy-tool'
+                    name = 'Test-Tool'
                 }
             )
 
@@ -258,15 +258,14 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
             $response = $output | ConvertFrom-Json -Depth 10
 
             $response.id | Should -Be 1
-            $response.result.isError | Should -BeTrue
-            $response.result.content[0].type | Should -Be 'text'
-            $response.result.content[0].text | Should -Match "not found"
+            $response.error.code | Should -Be -32602
+            $response.error.message | Should -Be 'Unknown tool: missing-tool'
         }
 
         It 'Should respond to ping requests' {
             $tools = @(
                 [ordered]@{
-                    name = 'dummy-tool'
+                    name = 'Test-Tool'
                 }
             )
 
@@ -284,9 +283,9 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
             $response = $output | ConvertFrom-Json -Depth 10
 
             $response.id | Should -Be 1
-            $response.result.timestamp | Should -Not -BeNullOrEmpty
+            # Spec: ping MUST return empty result object
+            $response.result | Should -BeNullOrEmpty
 
         }
     }
 }
-

@@ -273,6 +273,44 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
             $result.result.isError | Should -Be $false
         }
 
+        It 'Should serialize non-string tool result to JSON text' {
+            function global:Test-ExecuteObjectFunction {
+                param(
+                    [Parameter(Mandatory = $true)]
+                    [string]$payload
+                )
+                return [PSCustomObject]@{
+                    value = $payload
+                    ok    = $true
+                }
+            }
+
+            $objectFunctionInfo = Get-Command -Name Test-ExecuteObjectFunction
+            $objectTools = mcp.getInputSchema -functionInfo $objectFunctionInfo
+
+            $request = @{
+                jsonrpc = '2.0'
+                id      = 2
+                method  = 'tools/call'
+                params  = @{
+                    name      = 'Test-ExecuteObjectFunction'
+                    arguments = @{
+                        payload = 'obj-data'
+                    }
+                }
+            }
+
+            $result = mcp.requestHandler -request $request -tools $objectTools
+
+            $result.result.isError | Should -Be $false
+            $result.result.content[0].type | Should -Be 'text'
+            $parsedText = $result.result.content[0].text | ConvertFrom-Json
+            $parsedText.value | Should -Be 'obj-data'
+            $parsedText.ok | Should -Be $true
+
+            Remove-Item -Path Function:global:Test-ExecuteObjectFunction -ErrorAction SilentlyContinue
+        }
+
         AfterAll {
             Remove-Item -Path Function:global:Test-ExecuteFunction -ErrorAction SilentlyContinue
         }
