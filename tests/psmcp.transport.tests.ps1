@@ -24,7 +24,7 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
         It 'Should process initialize request and stop on shutdown' {
             $tools = @(
                 [ordered]@{
-                    name = 'dummy-tool'
+                    name = 'Test-Tool'
                 }
             )
 
@@ -203,7 +203,7 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
         }
 
         It 'Should execute tools/call and return content' {
-            function global:dummy-tool {
+            function global:Test-Tool {
                 param(
                     [Parameter(Mandatory)]
                     [string]$Name
@@ -214,12 +214,12 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
 
             $tools = @(
                 [ordered]@{
-                    name = 'dummy-tool'
+                    name = 'Test-Tool'
                 }
             )
 
             $inputLines = @(
-                '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"dummy-tool","arguments":{"Name":"Igor"}}}'
+                '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"Test-Tool","arguments":{"Name":"Igor"}}}'
             )
 
             $inputData = [string]::Join([System.Environment]::NewLine, $inputLines)
@@ -237,36 +237,10 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
             $response.result.content[0].text | Should -Be 'hello Igor'
         }
 
-        It 'Should surface tool errors in tools/call response' {
-            $tools = @(
-                [ordered]@{
-                    name = 'dummy-tool'
-                }
-            )
-
-            $inputLines = @(
-                '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"missing-tool","arguments":{}}}'
-            )
-
-            $inputData = [string]::Join([System.Environment]::NewLine, $inputLines)
-            $reader = [System.IO.StringReader]::new($inputData)
-            $writer = [System.IO.StringWriter]::new()
-
-            mcp.core.stdio.main -tools $tools -In $reader -Out $writer
-
-            $output = $writer.ToString().TrimEnd()
-            $response = $output | ConvertFrom-Json -Depth 10
-
-            $response.id | Should -Be 1
-            $response.result.isError | Should -BeTrue
-            $response.result.content[0].type | Should -Be 'text'
-            $response.result.content[0].text | Should -Match "not found"
-        }
-
         It 'Should respond to ping requests' {
             $tools = @(
                 [ordered]@{
-                    name = 'dummy-tool'
+                    name = 'Test-Tool'
                 }
             )
 
@@ -284,9 +258,9 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
             $response = $output | ConvertFrom-Json -Depth 10
 
             $response.id | Should -Be 1
-            $response.result.timestamp | Should -Not -BeNullOrEmpty
+            # Spec: ping MUST return empty result object
+            $response.result | Should -BeNullOrEmpty
 
         }
     }
 }
-

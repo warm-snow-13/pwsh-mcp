@@ -209,16 +209,10 @@ function mcp.getInputSchema {
         # $description = mcp.getCmdHelpInfo -functionInfo $functionInfoItem
         $description = mcp.getExtendedCmdDescription -functionInfo $functionInfoItem
 
-        $returns = [ordered]@{
-            type        = 'string'
-            description = $description
-        }
-
         $schema[$functionInfoItem.Name] = [ordered]@{
             name        = $functionInfoItem.Name
             description = $description
             inputSchema = $inputSchema
-            returns     = $returns
         }
 
         $annotations = $functionInfoItem.ScriptBlock.Attributes.Where({ $_ -is [AnnotationsAttribute] })
@@ -296,7 +290,7 @@ function mcp.callTool {
         # Security: Ensure tool exists
         if (-not($tools.name -contains $toolName)) {
             throw [System.Exception]::new(
-                "Tool '$toolName' not found in available tools."
+                "Unknown tool: $toolName"
             )
         }
         $executionResult = & $toolName @toolArgs
@@ -305,6 +299,15 @@ function mcp.callTool {
         $isError = $true
         $executionResult = $_.Exception.Message
     }
+
+
+    # Spec §5.2.1: TextContent MUST be a string.
+    # If the tool returns a complex object, serialize it to JSON.
+    if ($executionResult -isnot [string]) {
+        $serializedResult = ConvertTo-Json -InputObject $executionResult -Compress -ErrorAction SilentlyContinue
+        $executionResult = $serializedResult ?? [string]$executionResult
+    }
+
     return [PSCustomObject][ordered]@{
         result  = $executionResult
         isError = $isError
@@ -382,10 +385,8 @@ function mcp.requestHandler {
         'ping' {
             # Method: ping
             # https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/ping#ping
-            $response.result = @{
-                timestamp = (Get-Date).ToString('o')
-                serverId  = [guid]::NewGuid().ToString()
-            }
+            # Spec: ping response MUST return an empty result object.
+            $response.result = @{}
             return $response
         }
         'tools/list' {
