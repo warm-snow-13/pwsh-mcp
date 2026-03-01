@@ -5,7 +5,7 @@
 .DESCRIPTION
     This sample demonstrates how to create an MCP server that manages notes in Obsidian
     using the Obsidian CLI (requires Obsidian 1.12+ with CLI enabled).
-    Exposes tools to create notes, open/create daily notes, and append to daily notes.
+    Exposes a tool to append content to today's daily note.
 
 .NOTES
     Prerequisites:
@@ -39,7 +39,6 @@ function obsidian_append_daily_note {
         will create it if it does not.
     .PARAMETER content
         Content to append to the daily note. Supports Markdown formatting.
-        Use '\n' for newlines within content.
     .OUTPUTS
         JSON string with append operation result.
     .EXAMPLE
@@ -53,7 +52,7 @@ function obsidian_append_daily_note {
     param(
         [Parameter(
             Mandatory = $true,
-            HelpMessage = 'Content to append to the daily note. Supports Markdown. Use \n for newlines.'
+            HelpMessage = 'Content to append to the daily note. Supports Markdown. Use literal \n for newlines.'
         )]
         [ValidateNotNullOrEmpty()]
         [string]
@@ -61,6 +60,7 @@ function obsidian_append_daily_note {
     )
 
     try {
+
         $output = & Obsidian daily:append "content=$content" 2>&1
         $exitCode = $LASTEXITCODE
         $details = ($output | Out-String).Trim()
@@ -84,9 +84,7 @@ function obsidian_append_daily_note {
 
 Import-Module -FullyQualifiedName "$PSScriptRoot/../src/pwsh.mcp/pwsh.mcp.psd1" -Force -ErrorAction Stop
 
-$env:PWSH_MCP_SERVER_LOG_FILE_PATH = [System.IO.Path]::ChangeExtension($MyInvocation.MyCommand.Path, '.log')
-
 if ($MyInvocation.InvocationName -ne '.') {
-    $tools = Get-Item Function:obsidian_append_daily_note
+    $tools = Get-Item Function:obsidian_append_daily_note -ErrorAction Stop
     New-MCPServer -functionInfo $tools
 }
