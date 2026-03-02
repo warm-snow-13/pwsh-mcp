@@ -304,3 +304,81 @@ Describe 'PowerShell Function Parameters - Extraction and Classification' -Tag '
     }
 
 }
+
+Describe "InputSchema.getParams - Handling of Parameters with DontShow Attribute" -Tag 'InputSchema' {
+
+    BeforeAll {
+        $modulePath = Join-Path -Path $PSScriptRoot -ChildPath '../src/pwsh.mcp/pwsh.mcp.psm1'
+        Import-Module $modulePath -Force
+    }
+
+    Context "When function has a parameter with DontShow = `$true" {
+        It "should exclude the parameter with DontShow from the result" {
+            function Test-FunctionWithDontShow {
+                [CmdletBinding()]
+                param(
+                    [Parameter(Mandatory = $true, HelpMessage = 'Visible parameter')]
+                    [string] $VisibleParam,
+
+                    [Parameter(DontShow = $true, HelpMessage = 'Hidden parameter')]
+                    [string] $HiddenParam
+                )
+                $VisibleParam, $HiddenParam | Out-Null
+            }
+            $funcInfo = Get-Item Function:Test-FunctionWithDontShow
+            $params = mcp.InputSchema.getParams -functionInfo $funcInfo
+
+            $paramNames = $params | ForEach-Object { $_.Name }
+            $paramNames | Should -Contain 'VisibleParam'
+            $paramNames | Should -Not -Contain 'HiddenParam'
+        }
+    }
+
+    Context "When function has no parameter with DontShow" {
+        It "should include all parameters" {
+
+            function Test-FunctionWithoutDontShow {
+                [CmdletBinding()]
+                param(
+                    [Parameter(Mandatory = $true, HelpMessage = 'Visible parameter')]
+                    [string] $VisibleParam
+                )
+                $VisibleParam | Out-Null
+            }
+
+            $funcInfo = Get-Item Function:Test-FunctionWithoutDontShow
+            $params = mcp.InputSchema.getParams -functionInfo $funcInfo
+
+            $paramNames = $params | ForEach-Object { $_.Name }
+            $paramNames | Should -Contain 'VisibleParam'
+            $paramNames.Count | Should -Be 1
+        }
+    }
+
+    Context "When function has multiple parameters, some with DontShow" {
+
+        It "should only include parameters without DontShow" {
+            function Test-MixedDontShow {
+                [CmdletBinding()]
+                param(
+                    [Parameter(Mandatory = $true)]
+                    [string] $ParamA,
+
+                    [Parameter(DontShow = $true)]
+                    [string] $ParamB,
+
+                    [Parameter()]
+                    [int] $ParamC
+                )
+                $ParamA, $ParamB, $ParamC | Out-Null
+            }
+            $funcInfo = Get-Item Function:Test-MixedDontShow
+            $params = mcp.InputSchema.getParams -functionInfo $funcInfo
+
+            $paramNames = $params | ForEach-Object { $_.Name }
+            $paramNames | Should -Contain 'ParamA'
+            $paramNames | Should -Contain 'ParamC'
+            $paramNames | Should -Not -Contain 'ParamB'
+        }
+    }
+}
