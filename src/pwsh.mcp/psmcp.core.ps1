@@ -130,7 +130,8 @@ function mcp.InputSchema.getParams {
     | Where-Object {
         ($_.Name -notin $excludeNames) -and
         ($_.ParameterType -notin $excludeParamTypes) -and
-        -not ($_.Attributes | Where-Object { $_.GetType().FullName -eq $attrTypeName })
+        -not ($_.Attributes | Where-Object { $_.GetType().FullName -eq $attrTypeName }) -and
+        -not ($_.Attributes | Where-Object { $_.DontShow -eq $true })
     }
 
     return $Parameters
@@ -280,7 +281,7 @@ function mcp.callTool {
     )
 
     $toolName = $request.params.name
-    $toolArgs = $request.params.arguments
+    $toolArgs = $request.params.arguments ?? @{}
 
     $executionResult = [string]::Empty
     $isError = $false
