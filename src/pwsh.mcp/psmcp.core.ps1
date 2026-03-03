@@ -137,16 +137,71 @@ function mcp.InputSchema.getParams {
     return $Parameters
 }
 
-function mcp.getInputSchema {
+function mcp.InputSchema.getTypeSchema {
+    [OutputType([System.Collections.Specialized.OrderedDictionary])]
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, HelpMessage = 'The .NET type of the parameter.')]
+        [ValidateNotNull()]
+        [System.Type]
+        $parameterType
+    )
+
+    if ($parameterType.IsArray) {
+        $elementType = $parameterType.GetElementType() ?? [string]
+        $itemsSchema = mcp.InputSchema.getTypeSchema -parameterType $elementType
+
+        return [ordered]@{
+            type  = 'array'
+            items = $itemsSchema
+        }
+    }
+
+    $type = switch ($parameterType) {
+        { $_ -in [string], [System.String], [char], [System.Char] } { 'string' }
+        { $_ -in [byte], [int], [System.Int32], [long], [System.Int64] } { 'integer' }
+        { $_ -in [double], [float], [single], [decimal] } { 'number' }
+        { $_ -in [bool], [System.Boolean] } { 'boolean' }
+        { $_ -eq [switch] } { 'boolean' }
+        { $_ -in [datetime], [System.DateTime], [System.DateTimeOffset] } {
+            return [ordered]@{
+                type   = 'string'
+                format = 'date-time'
+            }
+        }
+        default { 'string' }
+    }
+
+    if ($parameterType -in [object], [hashtable], [PSCustomObject]) {
+        return [ordered]@{
+            type                 = 'object';
+            additionalProperties = $true
+        }
+    }
+    return [ordered]@{
+        type = $type
+    }
+}
+
+function mcp.InputSchema.getSchema {
     <#
     .SYNOPSIS
         Build JSON-schema-like input description for PowerShell functions.
     .DESCRIPTION
         For each supplied FunctionInfo builds an ordered object with:
-        - name, description, inputSchema (type/properties/required), returns.
+        - name
+        - description
+        - inputSchema (type/properties/required)
         Returns an array of ordered dictionaries (one per function).
+
     .PARAMETER functionInfo
         Array of FunctionInfo objects to process.
+
+    .NOTES
+        Supported complex types:
+            - Arrays: type=array + items
+            - DateTime/DateTimeOffset: type=string + format=date-time
+            - Hashtable/object-like: type=object + additionalProperties=true
     #>
     [OutputType([System.Collections.Specialized.OrderedDictionary[]])]
     [CmdletBinding()]
@@ -174,16 +229,10 @@ function mcp.getInputSchema {
         }
 
         foreach ($Parameter in $Parameters) {
-            # TODO: param: switch, array, enum, datetime, object, hashtable, ...
-            $type = switch ($Parameter.ParameterType) {
-                { $_ -in [string], [System.String] } { 'string' }
-                { $_ -in [int], [System.Int32], [long], [int64] } { 'integer' }
-                { $_ -in [double], [float], [decimal] } { 'number' }
-                { $_ -in [bool], [System.Boolean] } { 'boolean' }
-                { $_ -eq [switch] } { 'boolean' }
-                default { 'string' }
-            }
 
+            $typeSchema = mcp.InputSchema.getTypeSchema -parameterType $Parameter.ParameterType
+
+            # $type = $typeSchema.type
             # Get parameter help: HelpMessage from Parameter attribute
             $paramHelp = $null
 
@@ -192,11 +241,19 @@ function mcp.getInputSchema {
             }
             $paramHelp = $paramHelp ?? "No description available for this parameter."
             $paramHelp = $paramHelp.Trim()
-
-            $inputSchema.properties[$Parameter.Name] = [ordered]@{
-                type        = $type;
-                description = $paramHelp
+            #
+            $paramSchema = [ordered]@{}
+            foreach ($key in $typeSchema.Keys) {
+                $paramSchema[$key] = $typeSchema[$key]
             }
+            $paramSchema['description'] = $paramHelp
+
+            $inputSchema.properties[$Parameter.Name] = $paramSchema
+            #
+            # $inputSchema.properties[$Parameter.Name] = [ordered]@{
+            #     type        = $type;
+            #     description = $paramHelp
+            # }
 
             $paramAttr = $Parameter.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] })
 
@@ -238,11 +295,8 @@ function mcp.callTool {
         Invoke a registered MCP tool (PowerShell function) with provided arguments.
 
     .DESCRIPTION
-        Validates that the requested tool name exists in the provided tools list,
-        invokes the underlying PowerShell function with the supplied arguments,
-        and returns a structured ordered hashtable with fields:
-        - result: execution output or error message
-        - isError: $true when invocation failed
+        Ensures that the requested tool exists in the provided tools collection,
+        then executes the corresponding PowerShell function with the supplied arguments.
 
     .PARAMETER request
         JSON-RPC like request object containing at least `params.name` and `params.arguments`.
@@ -280,13 +334,14 @@ function mcp.callTool {
         $tools
     )
 
-    $toolName = $request.params.name
-    $toolArgs = $request.params.arguments ?? @{}
-
-    $executionResult = [string]::Empty
     $isError = $false
+    $executionResult = [string]::Empty
 
     try {
+
+        $toolName = $request.params?.name
+        $toolArgs = $request.params?.arguments ?? @{}
+
         # Handle errors during tool execution
         # Security: Ensure tool exists
         if (-not($tools.name -contains $toolName)) {
@@ -294,23 +349,21 @@ function mcp.callTool {
                 "Unknown tool: $toolName"
             )
         }
+
         $executionResult = & $toolName @toolArgs
+
+        if ($executionResult -isnot [string]) {
+            $executionResult = (ConvertTo-Json -InputObject $executionResult -Compress)
+        }
+
     }
     catch {
         $isError = $true
         $executionResult = $_.Exception.Message
     }
 
-
-    # Spec §5.2.1: TextContent MUST be a string.
-    # If the tool returns a complex object, serialize it to JSON.
-    if ($executionResult -isnot [string]) {
-        $serializedResult = ConvertTo-Json -InputObject $executionResult -Compress -ErrorAction SilentlyContinue
-        $executionResult = $serializedResult ?? [string]$executionResult
-    }
-
     return [PSCustomObject][ordered]@{
-        result  = $executionResult
+        text    = $executionResult
         isError = $isError
     }
 }
@@ -354,8 +407,8 @@ function mcp.requestHandler {
             $response.result = [ordered]@{
                 protocolVersion = '2025-11-25'
                 serverInfo      = [ordered]@{
-                    name    = ($MyInvocation.MyCommand.Module.Name ?? 'PSMCP')
-                    version = ([string]($MyInvocation.MyCommand.Module.Version) ?? '0.0.0')
+                    name    = ([string]($MyInvocation.MyCommand.Module.Name))
+                    version = ([string]($MyInvocation.MyCommand.Module.Version))
                 }
                 capabilities    = @{
                     tools = @{
@@ -403,11 +456,11 @@ function mcp.requestHandler {
             # https://modelcontextprotocol.io/specification/2025-11-25/server/tools#calling-tools
 
             $executionResult = mcp.callTool -request $request -tools $tools
-            $response.result = @{
+            $response.result = [ordered]@{
                 content = @(
                     [ordered]@{
                         type = 'text'
-                        text = $executionResult.result
+                        text = $executionResult.text
                     }
                 )
                 isError = $executionResult.isError
@@ -423,7 +476,7 @@ function mcp.requestHandler {
                 id      = $request.id
                 error   = [ordered]@{
                     code    = -32601
-                    message = "Method not found"
+                    message = "Request method not found"
                     data    = "The method '$($request.method)' does not exist or is not available."
                 }
             }
@@ -526,8 +579,8 @@ function mcp.core.stdio.main {
             }
 
             if ($null -eq $request.id) {
-                continue;
-                # skip processing - notifications have no id, so no response can be sent
+                continue
+                # notifications have no id, so no response can be sent
             }
 
             if ($request.method -eq 'shutdown') {
@@ -618,7 +671,7 @@ function New-MCPServer {
 
     if ($PSCmdlet.ShouldProcess("MCP Server", "ensure functions: $($functionInfo.name)")) {
         # Create and start MCP server
-        $toolList = mcp.getInputSchema -functionInfo $functionInfo
+        $toolList = mcp.InputSchema.getSchema -functionInfo $functionInfo
         mcp.core.stdio.main -tools $toolList
     }
     else {
@@ -634,7 +687,7 @@ function New-MCPServer {
                 version = ($MyInvocation.MyCommand.Module.Version ?? '0.0.0').ToString()
             }
             caller  = Get-PSCallStack | Select-Object -ExpandProperty Command -Skip 1
-            schema  = mcp.getInputSchema -functionInfo $functionInfo
+            schema  = mcp.InputSchema.getSchema -functionInfo $functionInfo
         } | ConvertTo-Json -Compress -Depth 10
     }
 }

@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
 
-    Pester tests for `mcp.getInputSchema` — validates JSON Schema generation for PowerShell function parameters used by the MCP server.
+    Pester tests for `mcp.InputSchema.getSchema` — validates JSON Schema generation for PowerShell function parameters used by the MCP server.
 
 .DESCRIPTION
 
-    This test suite verifies that `mcp.getInputSchema` produces correct JSON Schema fragments for a variety of PowerShell parameter constructs.
+    This test suite verifies that `mcp.InputSchema.getSchema` produces correct JSON Schema fragments for a variety of PowerShell parameter constructs.
     Covered cases include:
     - Primitive type mapping (string, integer, boolean).
     - Required vs optional parameters.
@@ -18,7 +18,7 @@
 
 #>
 
-Describe 'mcp.getInputSchema - JSON Schema Generation for PowerShell Functions' -Tag 'InputSchema' {
+Describe 'mcp.InputSchema.getSchema - JSON Schema Generation for PowerShell Functions' -Tag 'InputSchema' {
     BeforeAll {
         $modulePath = Join-Path -Path $PSScriptRoot -ChildPath '../src/pwsh.mcp/pwsh.mcp.psm1'
         Import-Module $modulePath -Force
@@ -87,7 +87,7 @@ Describe 'mcp.getInputSchema - JSON Schema Generation for PowerShell Functions' 
     }
 
     It 'Should generate correct JSON schema types for basic PowerShell parameter types' {
-        $schema = mcp.getInputSchema -functionInfo @(Get-Command TestFunc1)
+        $schema = mcp.InputSchema.getSchema -functionInfo @(Get-Command TestFunc1)
         Write-Verbose "Generated schema: $($schema | ConvertTo-Json -Depth 5)"
         $schema | Should -Not -BeNullOrEmpty
         $props = $schema.inputSchema.properties
@@ -97,13 +97,13 @@ Describe 'mcp.getInputSchema - JSON Schema Generation for PowerShell Functions' 
     }
 
     It 'Should mark mandatory parameters as required in schema' {
-        $schema = mcp.getInputSchema -functionInfo @(Get-Command TestFunc1)
+        $schema = mcp.InputSchema.getSchema -functionInfo @(Get-Command TestFunc1)
         $schema.inputSchema.required | Should -Contain -ExpectedValue 'Name'
         $schema.inputSchema.required | Should -Not -Contain -ExpectedValue 'Age'
     }
 
     It 'Should include parameter HelpMessage as description in schema' {
-        $schema = mcp.getInputSchema -functionInfo @(Get-Command TestFunc1)
+        $schema = mcp.InputSchema.getSchema -functionInfo @(Get-Command TestFunc1)
         $props = $schema.inputSchema.properties
         $props.Name.description     | Should -Be 'User name'
         $props.Age.description      | Should -Be 'User age'
@@ -112,7 +112,7 @@ Describe 'mcp.getInputSchema - JSON Schema Generation for PowerShell Functions' 
 
     It 'Should handle unsupported parameter types gracefully' {
         $funcInfo = Get-Command TestFunc_UnsupportedType
-        $schemaList = @(mcp.getInputSchema -functionInfo $funcInfo)
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
         $schemaList | Should -Not -BeNullOrEmpty
         $schemaList.Count | Should -BeGreaterThan 0
 
@@ -127,7 +127,7 @@ Describe 'mcp.getInputSchema - JSON Schema Generation for PowerShell Functions' 
 
     It 'Should handle parameters with default values (no default in schema yet)' {
         $funcInfo = Get-Command TestFunc_DefaultValue
-        $schemaList = @(mcp.getInputSchema -functionInfo $funcInfo)
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
         $schemaList | Should -Not -BeNullOrEmpty
 
         $schema = $schemaList[0]
@@ -140,7 +140,7 @@ Describe 'mcp.getInputSchema - JSON Schema Generation for PowerShell Functions' 
 
     It 'Should return empty properties for functions with no parameters' {
         $funcInfo = Get-Command TestFunc_NoParams
-        $schemaList = @(mcp.getInputSchema -functionInfo $funcInfo)
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
         $schemaList | Should -Not -BeNullOrEmpty
 
         $schema = $schemaList[0]
@@ -149,20 +149,20 @@ Describe 'mcp.getInputSchema - JSON Schema Generation for PowerShell Functions' 
 
     It 'Should include enum values for ValidateSet when implemented' -Skip {
         $funcInfo = Get-Command TestFunc_Validation
-        $schemaList = @(mcp.getInputSchema -functionInfo $funcInfo)
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
         $schema = $schemaList[0]
         $schema.inputSchema.properties['Type'].enum | Should -Be @('A', 'B', 'C')
     }
 
     It 'Should map array parameters to array type when implemented' -Skip {
         $funcInfo = Get-Command TestFunc_ArrayParam
-        $schemaList = @(mcp.getInputSchema -functionInfo $funcInfo)
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
         $schema = $schemaList[0]
         $schema.inputSchema.properties['Tags'].type | Should -Be 'array'
     }
 
     It 'Should throw for invalid functionInfo input' {
-        { mcp.getInputSchema -functionInfo $null } | Should -Throw
+        { mcp.InputSchema.getSchema -functionInfo $null } | Should -Throw
     }
 
     AfterAll {

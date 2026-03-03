@@ -83,8 +83,7 @@ Describe 'New-MCP VSCode configuration' -Tag 'code', 'config' {
         $devWatchProperty = $server.PSObject.Properties['dev']
         $devWatchProperty | Should -Not -BeNullOrEmpty
 
-        $watchPattern = 'src/**/*.ps1'
+        $watchPattern = 'src/**/*.{ps1,psm1,psd1}'
         $devWatchProperty.Value.watch | Should -Be $watchPattern
     }
 }
-

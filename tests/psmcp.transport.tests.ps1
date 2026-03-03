@@ -173,7 +173,7 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
             $response.jsonrpc | Should -Be '2.0'
             $response.id | Should -Be 1
             $response.error.code | Should -Be -32601
-            $response.error.message | Should -Be 'Method not found'
+            $response.error.message | Should -Be 'Request method not found'
             $response.error.data | Should -Match "does not exist or is not available"
         }
 
