@@ -228,37 +228,30 @@ function mcp.InputSchema.getSchema {
             required   = @()
         }
 
-        foreach ($Parameter in $Parameters) {
+        foreach ($parameter in $Parameters) {
 
-            $typeSchema = mcp.InputSchema.getTypeSchema -parameterType $Parameter.ParameterType
+            $typeSchema = mcp.InputSchema.getTypeSchema -parameterType $parameter.ParameterType
 
-            # $type = $typeSchema.type
-            # Get parameter help: HelpMessage from Parameter attribute
-            $paramHelp = $null
-
-            if ($Parameter.Attributes) {
-                $paramHelp = $Parameter.Attributes.where({ $_.HelpMessage }).HelpMessage
+            $paramSchema = [ordered]@{
+                type = $typeSchema.type
             }
-            $paramHelp = $paramHelp ?? "No description available for this parameter."
-            $paramHelp = $paramHelp.Trim()
-            #
-            $paramSchema = [ordered]@{}
             foreach ($key in $typeSchema.Keys) {
                 $paramSchema[$key] = $typeSchema[$key]
             }
+
+            $paramHelp = $null
+            if ($parameter.Attributes) {
+                $paramHelp = $parameter.Attributes.where({ $_.HelpMessage }).HelpMessage
+                $paramHelp = $paramHelp ?? [string]::Empty
+            }
             $paramSchema['description'] = $paramHelp
 
-            $inputSchema.properties[$Parameter.Name] = $paramSchema
-            #
-            # $inputSchema.properties[$Parameter.Name] = [ordered]@{
-            #     type        = $type;
-            #     description = $paramHelp
-            # }
+            $inputSchema.properties[$parameter.Name] = $paramSchema
 
-            $paramAttr = $Parameter.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] })
+            $paramAttr = $parameter.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] })
 
             if ($paramAttr -and $paramAttr.Mandatory) {
-                $inputSchema.required += $Parameter.Name
+                $inputSchema.required += $parameter.Name
             }
         }
 

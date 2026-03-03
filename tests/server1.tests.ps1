@@ -164,7 +164,7 @@ Describe 'ccc get SchemaTests' -Tag 'InputSchema' {
     It 'Should set fallback description when HelpMessage is missing' {
         $functionInfo = Get-Command -Name ccc -CommandType Function
         $schema = mcp.InputSchema.getSchema -functionInfo $functionInfo
-        $schema.inputSchema.properties.Parameter1.description | Should -Be 'No description available for this parameter.'
+        $schema.inputSchema.properties.Parameter1.description | Should -Be ([string]::Empty)
     }
 }
 
