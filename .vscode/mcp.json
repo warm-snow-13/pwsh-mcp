@@ -1,6 +1,9 @@
 {
 	"servers": {
 		"pwsh.mcp.server1": {
+			"env": {
+				"MY_ENV_VAR": "some value"
+			},
 			"type": "stdio",
 			"command": "pwsh",
 			"args": [

@@ -118,6 +118,10 @@ clean: ## Remove coverage/log artifacts (safe)
 	$(PWSH) $(PWSH_FLAGS) -Command "gci -Path $(COVERAGE_DIR) -Recurse -File | Remove-Item"
 	$(PWSH) $(PWSH_FLAGS) -Command "gci -Path $(LOG_DIR) -Recurse -File | Remove-Item"
 
+clean-jarvis: ## Remove artifacts
+	@echo "Cleaning up all artifacts..."
+	$(PWSH) $(PWSH_FLAGS) -File jarvis.ps1 -action clean
+
 mc-inspector: ## Launch MCP Inspector (requires Node.js + npx)
 	@echo "Launching Model Context Protocol Inspector..."
 	npx @modelcontextprotocol/inspector pwsh -NoProfile -NoLogo -file src/server1.ps1

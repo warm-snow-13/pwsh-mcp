@@ -162,7 +162,12 @@ switch ($action.ToLower()) {
     }
     'clean' {
         Write-Verbose "Cleaning up artifacts ..."
-        Get-ChildItem -Path $PSScriptRoot -Filter *.log -Recurse | Remove-Item -Verbose -ErrorAction Stop
+        # Clean: remove all log files in the project root and subdirectories
+        Get-ChildItem -Path $PSScriptRoot -Filter *.log -Recurse -File
+        | Remove-Item -Verbose -ErrorAction Stop
+        # Clean: Remove unit test artifacts
+        Get-ChildItem -Path "$PSScriptRoot/coverage" -Filter *.xml -Recurse -File
+        | Remove-Item -Verbose -ErrorAction Stop
     }
     'hello' {
         "Hello, Jarvis!" | Write-Host -ForegroundColor Green
