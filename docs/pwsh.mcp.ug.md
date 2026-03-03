@@ -68,6 +68,28 @@ The `[ValidateLength(1, 25)]` attribute constrains the `Name` parameter to 1–2
 > [!IMPORTANT]
 > MCP servers use **stdio** transport. Avoid any **non-protocol output** to stdout/stderr (for example, `Write-Host`, `Write-Verbose`, `Write-Debug`, `Write-Information`, or external tools that print), because it can corrupt the JSON-RPC stream. Prefer returning values and use file logging for diagnostics (see the [Logging Configuration](#logging-configuration) section).
 
+### Supported parameter types
+
+Below is a brief list of PowerShell parameter types that the module automatically maps to JSON Schema types when generating tool descriptions.
+
+Simple types:
+
+- **string**: `[string]`, `[System.String]` — JSON Schema: `type: "string"`. Used for text values.
+- **integer**: `[int]`, `[long]`, `[System.Int32]`, `[System.Int64]` — JSON Schema: `type: "integer"`. Whole numbers.
+- **number**: `[double]`, `[float]`, `[decimal]` — JSON Schema: `type: "number"`. Floating-point numbers.
+- **boolean**: `[bool]`, `[System.Boolean]`, `switch` — JSON Schema: `type: "boolean"`. Flags (`switch`) are treated as boolean
+
+Complex types:
+
+- **array**: typed arrays (e.g. `[string[]]`, `[int[]]`) — JSON Schema: `type: "array"` with `items` of the corresponding type.
+
+Limitations:
+
+- `[System.Management.Automation.ActionPreference]`,`[ScriptBlock]` are excluded from the schema generator.
+- `[object]`,`[hashtable]`: treated as `type: "object"
+
+See the `mcp.InputSchema.getTypeSchema` function in [src/pwsh.mcp/psmcp.core.ps1](src/pwsh.mcp/psmcp.core.ps1) for details.
+
 ### Usage Patterns
 
 Single Function Export
@@ -349,7 +371,7 @@ The config files locations:
 **Reference:**
 [Connect to local MCP servers](https://modelcontextprotocol.io/docs/develop/connect-local-servers)
 
-## Testing MCP Server
+## Developer tools: MCP Inspector
 
 You can test the server by using @modelcontextprotocol/inspector, any stdio-compatible client, or sending JSON-RPC messages to stdin.
 
