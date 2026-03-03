@@ -10,7 +10,6 @@
     - Primitive type mapping (string, integer, boolean).
     - Required vs optional parameters.
     - Parameter descriptions sourced from `HelpMessage`.
-    - Handling of unsupported or unknown parameter types.
     - Parameters with default values (schema presence only, no default value encoding yet).
     - (Skipped) behavior for `ValidateSet` enums and array parameters when implemented.
 
@@ -42,7 +41,7 @@ Describe 'mcp.InputSchema.getSchema - JSON Schema Generation for PowerShell Func
             [CmdletBinding()]
             param(
                 [Parameter(Mandatory = $true, HelpMessage = 'A timestamp value')]
-                [string]$Timestamp
+                [hashtable]$Timestamp
             )
             Write-Verbose "Inside TestFunc_UnsupportedType: $Timestamp"
         }
@@ -71,13 +70,41 @@ Describe 'mcp.InputSchema.getSchema - JSON Schema Generation for PowerShell Func
             param()
         }
 
+        function TestFunc_DateParam {
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory = $true, HelpMessage = 'Execution date')]
+                [datetime]$ExecutionDate
+            )
+            Write-Verbose "Inside TestFunc_DateParam: $ExecutionDate"
+        }
+
         function TestFunc_ArrayParam {
             [CmdletBinding()]
             param(
-                [Parameter(Mandatory = $true)]
-                [string[]]$Tags
+                [Parameter(Mandatory = $false, HelpMessage = 'Numeric identifiers')]
+                [int[]]$Ids = @(1, 2, 3)
             )
-            Write-Verbose "Inside TestFunc_ArrayParam: $($Tags -join ', ')"
+            Write-Verbose "Inside TestFunc_ArrayParam: $($Ids -join ', ')"
+        }
+
+        function TestFunc_ScriptBlock {
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory = $false, HelpMessage = 'Callback script block')]
+                [scriptblock]$Callback = { Write-Verbose "Default callback executed." }
+            )
+            Write-Verbose $Callback.scriptblock.length
+        }
+
+        function TestFunc_Annotated {
+            [Annotations(Title = 'Annotated tool title', ReadOnlyHint = $true, OpenWorldHint = $false)]
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory = $true, HelpMessage = 'Visible value')]
+                [string]$Value
+            )
+            Write-Verbose "Inside TestFunc_Annotated: $Value"
         }
 
     }
@@ -121,7 +148,8 @@ Describe 'mcp.InputSchema.getSchema - JSON Schema Generation for PowerShell Func
         $schema.inputSchema | Should -Not -BeNullOrEmpty
         $schema.inputSchema.properties.Contains('Timestamp') | Should -Be $true
         $schema.inputSchema.properties['Timestamp'] | Should -Not -BeNullOrEmpty
-        $schema.inputSchema.properties['Timestamp'].type | Should -Be 'string'
+        $schema.inputSchema.properties['Timestamp'].type | Should -Be 'object'
+        $schema.inputSchema.properties['Timestamp'].additionalProperties | Should -Be $true
         $schema.inputSchema.properties['Timestamp'].description | Should -Be 'A timestamp value'
     }
 
@@ -147,18 +175,66 @@ Describe 'mcp.InputSchema.getSchema - JSON Schema Generation for PowerShell Func
         $schema.inputSchema.properties.Keys.Count | Should -Be 0
     }
 
-    It 'Should include enum values for ValidateSet when implemented' -Skip {
-        $funcInfo = Get-Command TestFunc_Validation
-        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
-        $schema = $schemaList[0]
-        $schema.inputSchema.properties['Type'].enum | Should -Be @('A', 'B', 'C')
-    }
-
-    It 'Should map array parameters to array type when implemented' -Skip {
+    It 'Should map int array parameters to array with integer items' {
         $funcInfo = Get-Command TestFunc_ArrayParam
         $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
+
+        $schemaList | Should -Not -BeNullOrEmpty
         $schema = $schemaList[0]
-        $schema.inputSchema.properties['Tags'].type | Should -Be 'array'
+
+        $schema.inputSchema.properties.Contains('Ids') | Should -Be $true
+        $schema.inputSchema.properties['Ids'].type | Should -Be 'array'
+        $schema.inputSchema.properties['Ids'].items.type | Should -Be 'integer'
+        $schema.inputSchema.properties['Ids'].description | Should -Be 'Numeric identifiers'
+    }
+
+    It 'Should map DateTime parameters to string with date-time format' {
+        $funcInfo = Get-Command TestFunc_DateParam
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
+
+        $schemaList | Should -Not -BeNullOrEmpty
+        $schema = $schemaList[0]
+
+        $schema.inputSchema.properties.Contains('ExecutionDate') | Should -Be $true
+        $schema.inputSchema.properties['ExecutionDate'].type | Should -Be 'string'
+        $schema.inputSchema.properties['ExecutionDate'].format | Should -Be 'date-time'
+        $schema.inputSchema.properties['ExecutionDate'].description | Should -Be 'Execution date'
+        $schema.inputSchema.required | Should -Contain 'ExecutionDate'
+    }
+
+    It 'Should exclude ScriptBlock parameters from schema properties' {
+        $funcInfo = Get-Command TestFunc_ScriptBlock
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
+
+        $schemaList | Should -Not -BeNullOrEmpty
+        $schema = $schemaList[0]
+
+        $schema.inputSchema.properties.Contains('Callback') | Should -Be $false
+    }
+
+    It 'Should include annotations metadata when function has AnnotationsAttribute' {
+        $funcInfo = Get-Command TestFunc_Annotated
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
+
+        $schemaList | Should -Not -BeNullOrEmpty
+        $schema = $schemaList[0]
+
+        $schema.Contains('annotations') | Should -Be $true
+        $schema.annotations.title | Should -Be 'Annotated tool title'
+        $schema.annotations.readOnlyHint | Should -BeTrue
+        $schema.annotations.openWorldHint | Should -BeFalse
+        $schema.title | Should -Be 'Annotated tool title'
+    }
+
+    It 'Should not include annotations metadata when function has no AnnotationsAttribute' {
+        $funcInfo = Get-Command TestFunc1
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
+
+        $schemaList | Should -Not -BeNullOrEmpty
+        $schema = $schemaList[0]
+
+        $schema.Contains('annotations') | Should -Be $false
+        $schema.Contains('title') | Should -Be $false
     }
 
     It 'Should throw for invalid functionInfo input' {
@@ -166,7 +242,7 @@ Describe 'mcp.InputSchema.getSchema - JSON Schema Generation for PowerShell Func
     }
 
     AfterAll {
-        Remove-Module PSMCP -Force -ErrorAction SilentlyContinue
-        Write-Verbose "Removed PSMCP module after tests."
+        Remove-Module pwsh.mcp -Force -ErrorAction SilentlyContinue
+        Write-Verbose "Removed pwsh.mcp module after tests."
     }
 }
