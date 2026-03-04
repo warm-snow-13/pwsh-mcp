@@ -149,7 +149,7 @@ function cde {
     }
 
 
-    return $result
+    return (ConvertTo-Json -InputObject $result -Depth 3)
 }
 
 function q11 {
