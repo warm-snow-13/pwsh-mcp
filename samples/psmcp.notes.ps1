@@ -9,11 +9,13 @@
 #Requires -Version 7.0
 
 if (-not $IsMacOS) {
-    throw "This MCP server is supported only on macOS."
-}
 
-if (-not (Get-Command osascript -ErrorAction SilentlyContinue)) {
-    throw "The 'osascript' command was not found. Script can only run on macOS with osascript installed."
+    throw "This MCP server is supported only on macOS."
+
+    if (-not (Get-Command osascript -ErrorAction SilentlyContinue)) {
+        throw "The 'osascript' command was not found. Script can only run on macOS with osascript installed."
+    }
+
 }
 
 # AppleScript template for creating notes

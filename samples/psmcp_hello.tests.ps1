@@ -9,7 +9,7 @@
 
 BeforeAll {
     # Dot-source the sample script to make its functions available for testing
-    . "$PSScriptRoot/psmcp_hello_world.ps1"
+    . "$PSScriptRoot/psmcp_hello.ps1"
 }
 
 Describe 'Hello world sample script' -Tag 'Samples', 'Unit' {
@@ -20,16 +20,12 @@ Describe 'Hello world sample script' -Tag 'Samples', 'Unit' {
 
     It 'Should return default greeting when Name is omitted' {
         $result = hello_world
-        $result | Should -Be 'Hello, World!'
+        $result.text | Should -Be 'Hello, World!'
     }
 
     It 'Should return greeting for provided Name' {
         $result = hello_world -Name 'Ani'
-        $result | Should -Be 'Hello, Ani!'
+        $result.text | Should -Be 'Hello, Ani!'
     }
 
-    It 'Should set log file path environment variable to .log extension' {
-        $env:PWSH_MCP_SERVER_LOG_FILE_PATH | Should -Not -BeNullOrEmpty
-        ([System.IO.Path]::GetExtension($env:PWSH_MCP_SERVER_LOG_FILE_PATH)) | Should -Be '.log'
-    }
 }

@@ -31,7 +31,13 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
         BeforeAll {
 
             # Create a test function
-            function testSampleFunction {
+
+            function global:testNoHelp {
+            }
+        }
+
+        It 'Should return help info for a function' {
+            function global:testSampleFunction {
                 <#
                 .SYNOPSIS
                     This is a test function.
@@ -39,11 +45,6 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
                 [CmdletBinding()]
                 param()
             }
-            function testNoHelp {
-            }
-        }
-
-        It 'Should return help info for a function' {
             $functionInfo = Get-Command -Name testSampleFunction
             $result = mcp.getCmdHelpInfo -functionInfo $functionInfo
 
@@ -53,6 +54,10 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
         }
 
         It 'Should handle functions without synopsis' {
+            function global:testNoHelp {
+                return [string]::Empty
+            }
+
             $functionInfo = Get-Command -Name testNoHelp
             $result = mcp.getCmdHelpInfo -functionInfo $functionInfo
 

@@ -42,13 +42,13 @@ function mcp.getCmdHelpInfo {
         [switch]$extended
     )
 
-    $fallbackSynopsis = 'NO SYNOPSIS AVAILABLE FOR THIS FUNCTION.'
+    $fallbackSynopsis = $functionInfo.Name
     $result = [string]::Empty
 
     try {
         $funcName = $functionInfo.Name
         $commandHelpInfo = Get-Help -Name $funcName -ErrorAction SilentlyContinue
-        $result = $commandHelpInfo.Synopsis.trim() ?? $fallbackSynopsis
+        $result = $commandHelpInfo.Synopsis ?? $fallbackSynopsis
 
         if ($extended) {
             $result = [string]::Join(
@@ -67,7 +67,7 @@ function mcp.getCmdHelpInfo {
         $result = $fallbackSynopsis
     }
 
-    return $result
+    return ($result.Trim())
 }
 
 function mcp.InputSchema.getParams {

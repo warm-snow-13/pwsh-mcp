@@ -31,8 +31,7 @@ function abc {
 
     .DESCRIPTION
         Demo tool that accepts a short string and an integer, validates input,
-        and returns a small JSON payload describing the result. Useful for
-        exercising parameter validation and JSON output in MCP servers.
+        and returns a small JSON payload describing the result.
 
     .PARAMETER text
         Optional string (max 10 characters). Default: 'hello'.
