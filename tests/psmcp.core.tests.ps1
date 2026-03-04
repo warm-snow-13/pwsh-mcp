@@ -31,7 +31,7 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
         BeforeAll {
 
             # Create a test function
-            function global:testSampleFunction {
+            function testSampleFunction {
                 <#
                 .SYNOPSIS
                     This is a test function.
@@ -39,7 +39,7 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
                 [CmdletBinding()]
                 param()
             }
-            function global:testNoHelp {
+            function testNoHelp {
             }
         }
 
@@ -48,8 +48,8 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
             $result = mcp.getCmdHelpInfo -functionInfo $functionInfo
 
             $result | Should -Not -BeNullOrEmpty
-            $result.Name | Should -Be 'testSampleFunction'
-            $result.Synopsis | Should -Be 'This is a test function.'
+            $result | Should -Be 'This is a test function.'
+
         }
 
         It 'Should handle functions without synopsis' {
@@ -57,7 +57,8 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
             $result = mcp.getCmdHelpInfo -functionInfo $functionInfo
 
             $result | Should -Not -BeNullOrEmpty
-            $result.Name | Should -Be 'testNoHelp'
+            # The behavior of Get-Help when no help is available is to return the command name as the synopsis
+            $result | Should -Be $functionInfo.Name
         }
     }
 

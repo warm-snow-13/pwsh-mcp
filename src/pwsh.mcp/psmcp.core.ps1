@@ -28,6 +28,7 @@ if (-not ('AnnotationsAttribute' -as [type])) {
 
 function mcp.getCmdHelpInfo {
     [Alias("Get-McpCommandHelpInfo")]
+    [outputType([string])]
     [CmdletBinding()]
     param(
         [parameter(
@@ -36,71 +37,37 @@ function mcp.getCmdHelpInfo {
         )]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.FunctionInfo]
-        $functionInfo
+        $functionInfo,
+
+        [switch]$extended
     )
 
     $fallbackSynopsis = 'NO SYNOPSIS AVAILABLE FOR THIS FUNCTION.'
-    $fallbackDescription = 'NO DESCRIPTION AVAILABLE FOR THIS FUNCTION.'
+    $result = [string]::Empty
 
-    $commandHelpInfo = [PSCustomObject]@{
-        Name        = $functionInfo.Name
-        Synopsis    = $functionInfo.Synopsis ?? $fallbackSynopsis
-        Description = @{
-            text = $fallbackDescription
-        }
-    }
     try {
         $funcName = $functionInfo.Name
         $commandHelpInfo = Get-Help -Name $funcName -ErrorAction SilentlyContinue
+        $result = $commandHelpInfo.Synopsis.trim() ?? $fallbackSynopsis
+
+        if ($extended) {
+            $result = [string]::Join(
+                [Environment]::NewLine,
+                (
+                    $commandHelpInfo.PSObject.Properties
+                    | Where-Object { $_.Name -in 'Synopsis', 'Component', 'Role', 'Functionality' }
+                    | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Value) }
+                    | ForEach-Object { [string]::Concat($_.Name, ': ', ([string]$_.Value).Trim()) }
+                )
+            );
+        }
+
     }
     catch {
-        # Keep fallback object.
-        $null = $_
+        $result = $fallbackSynopsis
     }
 
-    return $commandHelpInfo
-}
-
-function mcp.getExtendedCmdDescription {
-    [Alias("Get-McpExtendedCommandDescription")]
-    [CmdletBinding()]
-    param(
-        [parameter(
-            Mandatory = $true,
-            HelpMessage = "FunctionInfo object for processing."
-        )]
-        [ValidateNotNullOrEmpty()]
-        [System.Management.Automation.FunctionInfo]
-        $functionInfo
-    )
-
-    $cmdHelpInfo = mcp.getCmdHelpInfo -functionInfo $functionInfo
-
-    $extendedDescription = @()
-
-    try {
-        # TODO: improve extraction of additional metadata from help
-        # .ROLE, .FUNCTIONALITY.
-
-        if ($cmdHelpInfo.Synopsis) {
-            $extendedDescription += $cmdHelpInfo.Synopsis.trim()
-        }
-        if ($cmdHelpInfo.Description) {
-            $extendedDescription += $cmdHelpInfo.Description.text
-        }
-        if ($cmdHelpInfo.Functionality) {
-            $extendedDescription += "<functionality>" + $cmdHelpInfo.Functionality.trim() + "</functionality>"
-        }
-        if ($cmdHelpInfo.Role) {
-            $extendedDescription += "<role>" + $cmdHelpInfo.Role.trim() + "</role>"
-        }
-    }
-    catch {
-        # Keep fallback object.
-        $null = $_
-    }
-
-    return ($extendedDescription -join " ") -replace "`n", " " -replace "\s{2,}", " "
+    return $result
 }
 
 function mcp.InputSchema.getParams {
@@ -150,7 +117,6 @@ function mcp.InputSchema.getTypeSchema {
     if ($parameterType.IsArray) {
         $elementType = $parameterType.GetElementType() ?? [string]
         $itemsSchema = mcp.InputSchema.getTypeSchema -parameterType $elementType
-
         return [ordered]@{
             type  = 'array'
             items = $itemsSchema
@@ -178,6 +144,7 @@ function mcp.InputSchema.getTypeSchema {
             additionalProperties = $true
         }
     }
+
     return [ordered]@{
         type = $type
     }
@@ -257,8 +224,7 @@ function mcp.InputSchema.getSchema {
 
         # Build the final schema for this function (after processing all parameters)
 
-        # $description = mcp.getCmdHelpInfo -functionInfo $functionInfoItem
-        $description = mcp.getExtendedCmdDescription -functionInfo $functionInfoItem
+        $description = mcp.getCmdHelpInfo -functionInfo $functionInfoItem -extended
 
         $schema[$functionInfoItem.Name] = [ordered]@{
             name        = $functionInfoItem.Name
