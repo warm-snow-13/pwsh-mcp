@@ -96,7 +96,7 @@ Limitations:
 - `[System.Management.Automation.ActionPreference]`,`[ScriptBlock]` are excluded from the schema generator.
 - `[object]`,`[hashtable]`: treated as `type: "object"
 
-See the `mcp.InputSchema.getTypeSchema` function in [src/pwsh.mcp/psmcp.core.ps1](src/pwsh.mcp/psmcp.core.ps1) for details.
+See the `mcp.InputSchema.getTypeSchema` function in [src/pwsh.mcp/psmcp.core.ps1](../src/pwsh.mcp/psmcp.core.ps1) for details.
 
 ### Usage Patterns
 
