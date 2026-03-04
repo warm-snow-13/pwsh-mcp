@@ -14,7 +14,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- (Nothing yet)
+## [0.1.3] - 2026-03-04
+
+### Added
+
+- Sample MCP server for managing notes in Obsidian via CLI
+- Enhanced JSON schema tests for additional parameter types and annotations metadata
+- Clean-jarvis target to Makefile and artifact cleanup in jarvis.ps1
+
+### Changed
+
+- Refactored input schema functions and enhanced JSON schema generation for PowerShell parameters
+- Improved parameter handling in schema generation and updated test for fallback description
+- Enhanced AnnotationsAttribute with additional metadata hints and constructor parameters
+- Enhanced Add-MCPServer function: added silent mode parameter and improved output messaging
+- Enhanced mcp.getCmdHelpInfo: extended output and improved test cases for command help retrieval
+- Updated user guide: enhanced server implementation section
+- Refactored samples directory
+- Streamlined tool response handling and updated related tests
+- Updated VSCode settings for improved editor configuration and documentation clarity
+- Updated .gitignore to clarify AI assistant data sections
+- Updated watch pattern to include additional file types in dev configuration
 
 ## [0.1.2] - 2026-02-27
 
