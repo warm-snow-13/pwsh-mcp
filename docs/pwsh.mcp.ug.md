@@ -37,7 +37,7 @@ Get-Command -Module pwsh.mcp
 
 ## MCP Server Creation
 
-### Minimal Implementation
+### Server Implementation
 
 The repository includes several functional examples in the [samples/](../samples/) directory.
 This [example](samples/psmcp_hello_world.ps1) demonstrates a minimal PowerShell MCP server.
@@ -48,6 +48,10 @@ Import-Module pwsh.mcp -Force -ErrorAction Stop
 
 # Define a function to expose as an MCP tool
 function get_greeting {
+    <#
+    .Synopsis
+      Returns a greeting message.
+    #>
     [Annotations(Title = "Get Greeting", ReadOnlyHint = $true)]
     [OutputType([string])]
     [CmdletBinding()]
@@ -63,10 +67,36 @@ function get_greeting {
 New-MCPServer -FunctionInfo (Get-Item Function:get_greeting)
 ```
 
-The `[ValidateLength(1, 25)]` attribute constrains the `Name` parameter to 1–25 characters, guarding against oversized input. The `[Annotations]` attribute supplies client-facing metadata - in this case, a display title and a read-only hint. The function `New-MCPServer` starts the MCP server and registers `get_greeting` as an available tool via the `FunctionInfo` parameter.
+The `[ValidateLength(1, 25)]` attribute constrains the `Name` parameter to 1–25 characters, guarding against oversized input.
+The `[Annotations]` attribute supplies client-facing metadata - in this case, a display title and a read-only hint.
+The function `New-MCPServer` starts the MCP server and registers `get_greeting` as an available tool via the `FunctionInfo` parameter.
+When a parameter has a `mandatory=true` attribute, it will be automatically exposed in the tool's schema as a **required** parameter.
+The '.Synopsis' comment-based help section is used as the tool description in the generated schema.
 
 > [!IMPORTANT]
 > MCP servers use **stdio** transport. Avoid any **non-protocol output** to stdout/stderr (for example, `Write-Host`, `Write-Verbose`, `Write-Debug`, `Write-Information`, or external tools that print), because it can corrupt the JSON-RPC stream. Prefer returning values and use file logging for diagnostics (see the [Logging Configuration](#logging-configuration) section).
+
+### Supported parameter types
+
+Below is a brief list of PowerShell parameter types that the module automatically maps to JSON Schema types when generating tool descriptions.
+
+Simple types:
+
+- **string**: `[string]`, `[System.String]` — JSON Schema: `type: "string"`. Used for text values.
+- **integer**: `[int]`, `[long]`, `[System.Int32]`, `[System.Int64]` — JSON Schema: `type: "integer"`. Whole numbers.
+- **number**: `[double]`, `[float]`, `[decimal]` — JSON Schema: `type: "number"`. Floating-point numbers.
+- **boolean**: `[bool]`, `[System.Boolean]`, `switch` — JSON Schema: `type: "boolean"`. Flags (`switch`) are treated as boolean
+
+Complex types:
+
+- **array**: typed arrays (e.g. `[string[]]`, `[int[]]`) — JSON Schema: `type: "array"` with `items` of the corresponding type.
+
+Limitations:
+
+- `[System.Management.Automation.ActionPreference]`,`[ScriptBlock]` are excluded from the schema generator.
+- `[object]`,`[hashtable]`: treated as `type: "object"
+
+See the `mcp.InputSchema.getTypeSchema` function in [src/pwsh.mcp/psmcp.core.ps1](../src/pwsh.mcp/psmcp.core.ps1) for details.
 
 ### Usage Patterns
 
@@ -108,6 +138,7 @@ Use standard PowerShell features to enhance functions that will be exposed as an
 
 - [PowerShell Cmdlet Development Guidelines](https://learn.microsoft.com/en-us/powershell/scripting/developer/cmdlet/cmdlet-development-guidelines)
 - [Validating Parameter Input](https://learn.microsoft.com/en-us/powershell/scripting/developer/cmdlet/validating-parameter-input)
+- [Comment-Based Help Keywords](https://learn.microsoft.com/en-us/powershell/scripting/developer/help/comment-based-help-keywords)
 
 ### Best Practices
 
@@ -255,7 +286,10 @@ As an alternative to editing the config file manually, run the following command
 
 The Gemini CLI uses the mcpServers configuration in your settings.json file to locate and connect to MCP servers.
 
-**Reference:** [Gemini CLI MCP Servers](https://geminicli.com/docs/tools/mcp-server/)
+**Reference:**
+
+- [Set up an MCP server](https://geminicli.com/docs/cli/tutorials/mcp-setup/)
+- [Gemini CLI MCP Servers](https://geminicli.com/docs/tools/mcp-server/)
 
 **User-level.** Configuration File: `~/.gemini/settings.json`
 
@@ -349,7 +383,7 @@ The config files locations:
 **Reference:**
 [Connect to local MCP servers](https://modelcontextprotocol.io/docs/develop/connect-local-servers)
 
-## Testing MCP Server
+## Developer tools: MCP Inspector
 
 You can test the server by using @modelcontextprotocol/inspector, any stdio-compatible client, or sending JSON-RPC messages to stdin.
 

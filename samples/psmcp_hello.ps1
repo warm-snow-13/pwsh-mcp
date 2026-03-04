@@ -1,14 +1,18 @@
+<#
+.SYNOPSIS
+ cmdlet: 7976626a-9764-409d-a4c1-4361685db1c4
+#>
 [CmdletBinding(
     SupportsShouldProcess = $true,
     ConfirmImpact = [System.Management.Automation.ConfirmImpact]::Low
 )]
 param()
 
-# Import the MCP module.
+# Import the MCP module
 # Import-Module -Name pwsh.mcp -Force -ErrorAction Stop
 
 # Use the relative path to import the module
-Import-Module $PSScriptRoot/../src/pwsh.mcp/pwsh.mcp.psd1 -Force
+Import-Module $PSScriptRoot/../src/pwsh.mcp/pwsh.mcp.psd1 -Force -ErrorAction Stop
 
 $env:PWSH_MCP_SERVER_LOG_FILE_PATH = [System.IO.Path]::ChangeExtension($MyInvocation.MyCommand.path, ".log")
 
@@ -23,8 +27,10 @@ function hello_world {
         [string]
         $Name = "World"
     )
-    $result = "Hello, $Name!"
-    return $result
+    return [PSCustomObject]@{
+        text = "Hello, $Name!"
+        who  = $MyInvocation.InvocationName
+    }
 }
 
 # Skip server initialization when the script is dot-sourced.

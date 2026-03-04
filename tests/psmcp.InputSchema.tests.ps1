@@ -1,16 +1,15 @@
 <#
 .SYNOPSIS
 
-    Pester tests for `mcp.getInputSchema` — validates JSON Schema generation for PowerShell function parameters used by the MCP server.
+    Pester tests for `mcp.InputSchema.getSchema` — validates JSON Schema generation for PowerShell function parameters used by the MCP server.
 
 .DESCRIPTION
 
-    This test suite verifies that `mcp.getInputSchema` produces correct JSON Schema fragments for a variety of PowerShell parameter constructs.
+    This test suite verifies that `mcp.InputSchema.getSchema` produces correct JSON Schema fragments for a variety of PowerShell parameter constructs.
     Covered cases include:
     - Primitive type mapping (string, integer, boolean).
     - Required vs optional parameters.
     - Parameter descriptions sourced from `HelpMessage`.
-    - Handling of unsupported or unknown parameter types.
     - Parameters with default values (schema presence only, no default value encoding yet).
     - (Skipped) behavior for `ValidateSet` enums and array parameters when implemented.
 
@@ -18,7 +17,7 @@
 
 #>
 
-Describe 'mcp.getInputSchema - JSON Schema Generation for PowerShell Functions' -Tag 'InputSchema' {
+Describe 'mcp.InputSchema.getSchema - JSON Schema Generation for PowerShell Functions' -Tag 'InputSchema' {
     BeforeAll {
         $modulePath = Join-Path -Path $PSScriptRoot -ChildPath '../src/pwsh.mcp/pwsh.mcp.psm1'
         Import-Module $modulePath -Force
@@ -42,7 +41,7 @@ Describe 'mcp.getInputSchema - JSON Schema Generation for PowerShell Functions' 
             [CmdletBinding()]
             param(
                 [Parameter(Mandatory = $true, HelpMessage = 'A timestamp value')]
-                [string]$Timestamp
+                [hashtable]$Timestamp
             )
             Write-Verbose "Inside TestFunc_UnsupportedType: $Timestamp"
         }
@@ -71,13 +70,41 @@ Describe 'mcp.getInputSchema - JSON Schema Generation for PowerShell Functions' 
             param()
         }
 
+        function TestFunc_DateParam {
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory = $true, HelpMessage = 'Execution date')]
+                [datetime]$ExecutionDate
+            )
+            Write-Verbose "Inside TestFunc_DateParam: $ExecutionDate"
+        }
+
         function TestFunc_ArrayParam {
             [CmdletBinding()]
             param(
-                [Parameter(Mandatory = $true)]
-                [string[]]$Tags
+                [Parameter(Mandatory = $false, HelpMessage = 'Numeric identifiers')]
+                [int[]]$Ids = @(1, 2, 3)
             )
-            Write-Verbose "Inside TestFunc_ArrayParam: $($Tags -join ', ')"
+            Write-Verbose "Inside TestFunc_ArrayParam: $($Ids -join ', ')"
+        }
+
+        function TestFunc_ScriptBlock {
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory = $false, HelpMessage = 'Callback script block')]
+                [scriptblock]$Callback = { Write-Verbose "Default callback executed." }
+            )
+            Write-Verbose $Callback.scriptblock.length
+        }
+
+        function TestFunc_Annotated {
+            [Annotations(Title = 'Annotated tool title', ReadOnlyHint = $true, OpenWorldHint = $false)]
+            [CmdletBinding()]
+            param(
+                [Parameter(Mandatory = $true, HelpMessage = 'Visible value')]
+                [string]$Value
+            )
+            Write-Verbose "Inside TestFunc_Annotated: $Value"
         }
 
     }
@@ -87,7 +114,7 @@ Describe 'mcp.getInputSchema - JSON Schema Generation for PowerShell Functions' 
     }
 
     It 'Should generate correct JSON schema types for basic PowerShell parameter types' {
-        $schema = mcp.getInputSchema -functionInfo @(Get-Command TestFunc1)
+        $schema = mcp.InputSchema.getSchema -functionInfo @(Get-Command TestFunc1)
         Write-Verbose "Generated schema: $($schema | ConvertTo-Json -Depth 5)"
         $schema | Should -Not -BeNullOrEmpty
         $props = $schema.inputSchema.properties
@@ -97,13 +124,13 @@ Describe 'mcp.getInputSchema - JSON Schema Generation for PowerShell Functions' 
     }
 
     It 'Should mark mandatory parameters as required in schema' {
-        $schema = mcp.getInputSchema -functionInfo @(Get-Command TestFunc1)
+        $schema = mcp.InputSchema.getSchema -functionInfo @(Get-Command TestFunc1)
         $schema.inputSchema.required | Should -Contain -ExpectedValue 'Name'
         $schema.inputSchema.required | Should -Not -Contain -ExpectedValue 'Age'
     }
 
     It 'Should include parameter HelpMessage as description in schema' {
-        $schema = mcp.getInputSchema -functionInfo @(Get-Command TestFunc1)
+        $schema = mcp.InputSchema.getSchema -functionInfo @(Get-Command TestFunc1)
         $props = $schema.inputSchema.properties
         $props.Name.description     | Should -Be 'User name'
         $props.Age.description      | Should -Be 'User age'
@@ -112,7 +139,7 @@ Describe 'mcp.getInputSchema - JSON Schema Generation for PowerShell Functions' 
 
     It 'Should handle unsupported parameter types gracefully' {
         $funcInfo = Get-Command TestFunc_UnsupportedType
-        $schemaList = @(mcp.getInputSchema -functionInfo $funcInfo)
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
         $schemaList | Should -Not -BeNullOrEmpty
         $schemaList.Count | Should -BeGreaterThan 0
 
@@ -121,13 +148,14 @@ Describe 'mcp.getInputSchema - JSON Schema Generation for PowerShell Functions' 
         $schema.inputSchema | Should -Not -BeNullOrEmpty
         $schema.inputSchema.properties.Contains('Timestamp') | Should -Be $true
         $schema.inputSchema.properties['Timestamp'] | Should -Not -BeNullOrEmpty
-        $schema.inputSchema.properties['Timestamp'].type | Should -Be 'string'
+        $schema.inputSchema.properties['Timestamp'].type | Should -Be 'object'
+        $schema.inputSchema.properties['Timestamp'].additionalProperties | Should -Be $true
         $schema.inputSchema.properties['Timestamp'].description | Should -Be 'A timestamp value'
     }
 
     It 'Should handle parameters with default values (no default in schema yet)' {
         $funcInfo = Get-Command TestFunc_DefaultValue
-        $schemaList = @(mcp.getInputSchema -functionInfo $funcInfo)
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
         $schemaList | Should -Not -BeNullOrEmpty
 
         $schema = $schemaList[0]
@@ -140,33 +168,81 @@ Describe 'mcp.getInputSchema - JSON Schema Generation for PowerShell Functions' 
 
     It 'Should return empty properties for functions with no parameters' {
         $funcInfo = Get-Command TestFunc_NoParams
-        $schemaList = @(mcp.getInputSchema -functionInfo $funcInfo)
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
         $schemaList | Should -Not -BeNullOrEmpty
 
         $schema = $schemaList[0]
         $schema.inputSchema.properties.Keys.Count | Should -Be 0
     }
 
-    It 'Should include enum values for ValidateSet when implemented' -Skip {
-        $funcInfo = Get-Command TestFunc_Validation
-        $schemaList = @(mcp.getInputSchema -functionInfo $funcInfo)
+    It 'Should map int array parameters to array with integer items' {
+        $funcInfo = Get-Command TestFunc_ArrayParam
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
+
+        $schemaList | Should -Not -BeNullOrEmpty
         $schema = $schemaList[0]
-        $schema.inputSchema.properties['Type'].enum | Should -Be @('A', 'B', 'C')
+
+        $schema.inputSchema.properties.Contains('Ids') | Should -Be $true
+        $schema.inputSchema.properties['Ids'].type | Should -Be 'array'
+        $schema.inputSchema.properties['Ids'].items.type | Should -Be 'integer'
+        $schema.inputSchema.properties['Ids'].description | Should -Be 'Numeric identifiers'
     }
 
-    It 'Should map array parameters to array type when implemented' -Skip {
-        $funcInfo = Get-Command TestFunc_ArrayParam
-        $schemaList = @(mcp.getInputSchema -functionInfo $funcInfo)
+    It 'Should map DateTime parameters to string with date-time format' {
+        $funcInfo = Get-Command TestFunc_DateParam
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
+
+        $schemaList | Should -Not -BeNullOrEmpty
         $schema = $schemaList[0]
-        $schema.inputSchema.properties['Tags'].type | Should -Be 'array'
+
+        $schema.inputSchema.properties.Contains('ExecutionDate') | Should -Be $true
+        $schema.inputSchema.properties['ExecutionDate'].type | Should -Be 'string'
+        $schema.inputSchema.properties['ExecutionDate'].format | Should -Be 'date-time'
+        $schema.inputSchema.properties['ExecutionDate'].description | Should -Be 'Execution date'
+        $schema.inputSchema.required | Should -Contain 'ExecutionDate'
+    }
+
+    It 'Should exclude ScriptBlock parameters from schema properties' {
+        $funcInfo = Get-Command TestFunc_ScriptBlock
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
+
+        $schemaList | Should -Not -BeNullOrEmpty
+        $schema = $schemaList[0]
+
+        $schema.inputSchema.properties.Contains('Callback') | Should -Be $false
+    }
+
+    It 'Should include annotations metadata when function has AnnotationsAttribute' {
+        $funcInfo = Get-Command TestFunc_Annotated
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
+
+        $schemaList | Should -Not -BeNullOrEmpty
+        $schema = $schemaList[0]
+
+        $schema.Contains('annotations') | Should -Be $true
+        $schema.annotations.title | Should -Be 'Annotated tool title'
+        $schema.annotations.readOnlyHint | Should -BeTrue
+        $schema.annotations.openWorldHint | Should -BeFalse
+        $schema.title | Should -Be 'Annotated tool title'
+    }
+
+    It 'Should not include annotations metadata when function has no AnnotationsAttribute' {
+        $funcInfo = Get-Command TestFunc1
+        $schemaList = @(mcp.InputSchema.getSchema -functionInfo $funcInfo)
+
+        $schemaList | Should -Not -BeNullOrEmpty
+        $schema = $schemaList[0]
+
+        $schema.Contains('annotations') | Should -Be $false
+        $schema.Contains('title') | Should -Be $false
     }
 
     It 'Should throw for invalid functionInfo input' {
-        { mcp.getInputSchema -functionInfo $null } | Should -Throw
+        { mcp.InputSchema.getSchema -functionInfo $null } | Should -Throw
     }
 
     AfterAll {
-        Remove-Module PSMCP -Force -ErrorAction SilentlyContinue
-        Write-Verbose "Removed PSMCP module after tests."
+        Remove-Module pwsh.mcp -Force -ErrorAction SilentlyContinue
+        Write-Verbose "Removed pwsh.mcp module after tests."
     }
 }

@@ -1,3 +1,13 @@
+<#
+.SYNOPSIS
+ cmdlet: 2d21c5df-5abc-4f41-97f3-b6bba0fd8f26
+#>
+[CmdletBinding()]
+param()
+
+Import-Module pwsh.mcp -Force  -ErrorAction Stop
+# Import-Module -FullyQualifiedName "$PSScriptRoot/../src/pwsh.mcp/pwsh.mcp.psd1" -Force -ErrorAction Stop
+
 function get_public_ip {
     <#
     .SYNOPSIS
@@ -29,6 +39,6 @@ function get_public_ip {
     return $result
 }
 
-Import-Module pwsh.mcp -Force  -ErrorAction Stop
-# Import-Module -FullyQualifiedName "$PSScriptRoot/../src/pwsh.mcp/pwsh.mcp.psd1" -Force -ErrorAction Stop
-New-MCPServer -functionInfo (Get-Item Function:get_public_ip -ErrorAction Stop)
+if ($MyInvocation.InvocationName -ne '.') {
+    New-MCPServer -functionInfo (Get-Item Function:get_public_ip -ErrorAction Stop)
+}

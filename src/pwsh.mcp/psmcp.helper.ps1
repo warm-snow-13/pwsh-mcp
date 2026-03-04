@@ -28,7 +28,14 @@ function Add-MCPServer {
         [ValidateScript({ Test-Path $_ -PathType Leaf })]
         [Alias('Path')]
         [string]
-        $mcpServerFullName
+        $mcpServerFullName,
+
+        [Parameter(
+            Mandatory = $false,
+            HelpMessage = 'If set, the function will not attempt to open the generated link.'
+        )]
+        [switch]
+        $silent
     )
 
     Write-Verbose 'GENERATE VSCODE MCP INSTALL LINK'
@@ -54,9 +61,13 @@ function Add-MCPServer {
     $mcpServerJsonEncoded = [System.Uri]::EscapeDataString($mcpServerJson)
     $vscodeMcpInstallLink = "vscode:mcp/install?$mcpServerJsonEncoded"
 
-    $vscodeMcpInstallLink | Write-Host -ForegroundColor DarkRed -BackgroundColor Gray
-    Write-Host "Copy the above link and paste it into the browser or run it in the terminal to register the MCP server in VSCode." -ForegroundColor Yellow
+    $vscodeMcpInstallLink | Write-Host -ForegroundColor ([ConsoleColor]::Magenta)
 
+    Write-Host "Copy the link and paste it into the browser or run it in the terminal to register the MCP server in VSCode."
+
+    if ($silent) {
+        return
+    }
     # Attempt to open the link in the default handler.
     try {
         if ($IsMacOS) {
@@ -69,4 +80,5 @@ function Add-MCPServer {
     catch {
         Write-Error "Failed to open MCP install link: $($_.Exception.Message)"
     }
+
 }

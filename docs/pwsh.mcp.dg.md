@@ -236,6 +236,16 @@ Follow [PowerShell Best Practices](https://learn.microsoft.com/en-us/powershell/
 
 Unified entry point: [ci.ps1](../ci.ps1)
 
+The script accepts an `action` parameter that selects the operation to perform. It auto-detects the execution environment via `$env:CI` and `$env:GITHUB_ACTIONS` and adjusts output accordingly.
+
+A transcript is written to `ci.log` alongside the script for every run.
+
+**Supported actions:**
+
+`test` — runs the Pester test suite using [config.tests.psd1](../config.tests.psd1); exits with an error if one or more tests fail.
+
+`analyze` — runs PSScriptAnalyzer using [config.analyzer.psd1](../config.analyzer.psd1); exits with an error on any `Error`-severity finding; add `-FailOnWarnings` to also treat `Warning`-severity findings as failures.
+
 ```powershell
 # Run tests
 ./ci.ps1 -action test
@@ -320,18 +330,41 @@ flowchart LR
 
 ### Schema Generation
 
-PowerShell metadata → JSON Schema conversion:
+Tool descriptors are generated automatically from PowerShell function metadata — no manual JSON authoring required. The `mcp.InputSchema.getSchema` function processes each `FunctionInfo` object and produces a compliant MCP tool definition.
+
+**Conversion pipeline:**
 
 1. Parse function `FunctionInfo` object
-2. Extract parameters and attributes
-3. Convert validation attributes to JSON Schema
-4. Generate tool definition with schema
+2. Retrieve synopsis and description via `Get-Help` → tool `description` field
+3. Extract parameters, skipping common parameters (`OutBuffer`, `SwitchParameter`, etc.) and parameters marked `DontShow`
+4. Map PowerShell types to JSON Schema types: `string`, `integer`, `number`, `boolean`
+5. Read `[Parameter(HelpMessage = "...")]` → property `description`
+6. Read `[Parameter(Mandatory = $true)]` → add to `required` array
+7. Read `[AnnotationsAttribute]` → populate `annotations` block (`title`, `readOnlyHint`, `openWorldHint`)
+8. Assemble final tool definition with `name`, `description`, `inputSchema`, and optional `annotations`
 
 ## Development Environment
 
 ### Makefile
 
-The top-level [Makefile](../Makefile) wraps common CI actions: `make test` and `make ci-action-test` call `ci.ps1 -action test`, `make ci-action-analyze` runs analyzer, and `make build` / `make deploy` proxy the Jarvis automation script for packaging or local install.
+The top-level [Makefile](../Makefile) is the primary shortcut layer for all CI and development actions.
+
+**CI targets** — delegate to `ci.ps1` with the corresponding `-action` flag:
+
+- `make test` — alias for `make ci-action-test`
+- `make ci-action-test` — run Pester tests
+- `make ci-action-analyze` — run PSScriptAnalyzer
+
+**Code quality targets** — quick access to PSScriptAnalyzer and formatter:
+
+- `make lint` — run analyzer against `src/` with default rules
+- `make lint_severity_error` / `make lint_severity_warning` — filter by severity
+
+**Utility targets** — housekeeping:
+
+- `make clean` — remove generated coverage and log files
+- `make clean-jarvis` — run full Jarvis clean action
+- `make mc-inspector` — launch MCP Inspector via `npx` against `src/server1.ps1`
 
 ### VS Code Workspace Settings
 
@@ -396,7 +429,15 @@ A short checklist to perform before cutting a release or publishing a package:
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-Use `type(scope): subject` with a concise imperative subject (≤72 characters). Examples: `fix(core): handle empty tool list`, `feat(logger): add structured context`. Mark breaking changes with `!` (for example, `feat(api)!: drop legacy params`) and explain the breaking change in the commit body. Typical types: `feat`, `fix`, `chore`, `refactor`, `docs`, `test`, `build`, `ci`.
+- **Format:** `type(scope): subject`
+- **Subject:** concise imperative, ≤72 characters
+- **Breaking changes:** append `!` to type, e.g. `feat(api)!: drop legacy params`
+- **Types:** `feat`, `fix`, `chore`, `refactor`, `docs`, `test`, `build`, `ci`
+
+**Examples:**
+
+- `fix(core): handle empty tool list`
+- `feat(logger): add structured context`
 
 ### Code Review Process
 

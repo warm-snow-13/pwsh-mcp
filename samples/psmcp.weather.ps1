@@ -1,3 +1,7 @@
+<#
+.SYNOPSIS
+ cmdlet: 910ec7b5-ed74-41d8-a54b-367c9cfdc1be
+#>
 function get-weather {
     <#
     .SYNOPSIS

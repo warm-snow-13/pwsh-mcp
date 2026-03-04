@@ -112,14 +112,14 @@ Describe 'aaa get SchemaTests' -Tag 'InputSchema' {
     #>
     It 'Should return schema information for aaa function' {
         $functionInfo = Get-Command -Name aaa -CommandType Function
-        [System.Collections.Specialized.OrderedDictionary]$schema = mcp.getInputSchema -functionInfo $functionInfo
+        [System.Collections.Specialized.OrderedDictionary]$schema = mcp.InputSchema.getSchema -functionInfo $functionInfo
         $schema | Should -Not -Be $null
         $schema.Name | Should -Be 'aaa'
     }
 
     It 'Should have inputSchema with correct properties' {
         $functionInfo = Get-Command -Name aaa -CommandType Function
-        $schema = mcp.getInputSchema -functionInfo $functionInfo
+        $schema = mcp.InputSchema.getSchema -functionInfo $functionInfo
         $schema.inputSchema | Should -Not -Be $null
         $schema.inputSchema.type | Should -Be 'object'
         $schema.inputSchema.properties.Keys | Should -Contain 'Parameter1'
@@ -128,7 +128,7 @@ Describe 'aaa get SchemaTests' -Tag 'InputSchema' {
 
     It 'Should define correct types and descriptions for parameters' {
         $functionInfo = Get-Command -Name aaa -CommandType Function
-        $schema = mcp.getInputSchema -functionInfo $functionInfo
+        $schema = mcp.InputSchema.getSchema -functionInfo $functionInfo
         $props = $schema.inputSchema.properties
         $props.Parameter1.type | Should -Be 'string'
         $props.Parameter2.type | Should -Be 'integer'
@@ -138,7 +138,7 @@ Describe 'aaa get SchemaTests' -Tag 'InputSchema' {
 
     It 'Should mark parameters as not required' {
         $functionInfo = Get-Command -Name aaa -CommandType Function
-        $schema = mcp.getInputSchema -functionInfo $functionInfo
+        $schema = mcp.InputSchema.getSchema -functionInfo $functionInfo
         $schema.inputSchema.required | Should -BeNullOrEmpty
     }
 
@@ -151,7 +151,7 @@ Describe 'bbb get SchemaTests' -Tag 'InputSchema' {
     #>
     It 'Should mark Parameter1 as required' {
         $functionInfo = Get-Command -Name bbb -CommandType Function
-        $schema = mcp.getInputSchema -functionInfo $functionInfo
+        $schema = mcp.InputSchema.getSchema -functionInfo $functionInfo
         $schema.inputSchema.required | Should -Contain 'Parameter1'
     }
 }
@@ -163,7 +163,31 @@ Describe 'ccc get SchemaTests' -Tag 'InputSchema' {
     #>
     It 'Should set fallback description when HelpMessage is missing' {
         $functionInfo = Get-Command -Name ccc -CommandType Function
-        $schema = mcp.getInputSchema -functionInfo $functionInfo
-        $schema.inputSchema.properties.Parameter1.description | Should -Be 'No description available for this parameter.'
+        $schema = mcp.InputSchema.getSchema -functionInfo $functionInfo
+        $schema.inputSchema.properties.Parameter1.description | Should -Be ([string]::Empty)
+    }
+}
+
+Describe 'import dot source' -Tag 'dev' {
+
+    BeforeAll {
+        # Import the server1.ps1 script to ensure the functions are available for testing
+        . "$PSScriptRoot/../src/server1.ps1"
+    }
+
+    It 'Should have abc function available' {
+        Get-Command -Name abc -CommandType Function | Should -Not -BeNullOrEmpty
+    }
+
+    It "call abc with valid input should return expected JSON structure" {
+
+        $params = @{ text = "TestName" }
+        $jsonResult = & abc  @params
+        $resultObj = $jsonResult | ConvertFrom-Json
+
+        $resultObj.function | Should -Be 'abc'
+        $resultObj.input.text | Should -Be 'TestName'
+        $resultObj.result | Should -BeTrue
+
     }
 }

@@ -31,8 +31,7 @@ function abc {
 
     .DESCRIPTION
         Demo tool that accepts a short string and an integer, validates input,
-        and returns a small JSON payload describing the result. Useful for
-        exercising parameter validation and JSON output in MCP servers.
+        and returns a small JSON payload describing the result.
 
     .PARAMETER text
         Optional string (max 10 characters). Default: 'hello'.
@@ -80,7 +79,7 @@ function abc {
         result   = $true
     }
 
-    return $payload | ConvertTo-Json -Depth 3
+    return (ConvertTo-Json -InputObject $payload -Depth 3)
 }
 
 function cde {
@@ -89,40 +88,76 @@ function cde {
         Process input text and optional color selection.
 
     .DESCRIPTION
-        Example tool that demonstrates required parameters, validation sets,
-        and returning a JSON object with metadata and timestamp.
+        Uses required parameters and validation.
 
     .PARAMETER text
         Required string (1-10 chars).
 
     .PARAMETER color
         Optional color selection. Allowed values: Red, Green, Blue.
+
+    .PARAMETER flag1
+        Optional switch parameter.
+
+    .PARAMETER arrayParam
+        Optional array of integers.
     #>
-    [Annotations(Title = "Process Demo Data", ReadOnlyHint = $true)]
+    [Annotations(
+        Title = "Process Demo Data",
+        ReadOnlyHint = $true
+    )]
     [OutputType([string])]
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true, HelpMessage = "Required string (1-10 chars).")]
+        [Parameter(
+            Mandatory = $true,
+            HelpMessage = "Required string (1-10 chars)."
+        )]
         [ValidateNotNullOrEmpty()]
         [ValidateLength(1, 10)]
         [string]
         $text,
 
-        [Parameter(Mandatory = $false, HelpMessage = "Color parameter (Red, Green, Blue).")]
+        [Parameter(
+            Mandatory = $false,
+            HelpMessage = "Color parameter (Red, Green, Blue)."
+        )]
         [ValidateSet('Red', 'Green', 'Blue')]
         [string]
-        $color
+        $color,
+
+        [Parameter(Mandatory = $false, HelpMessage = "Switch parameter.")]
+        [switch]
+        $flag1,
+
+        [Parameter(Mandatory = $false, HelpMessage = "Array parameter.")]
+        [int[]]
+        $arrayParam
     )
 
     $result = [PSCustomObject]@{
-        tool          = $MyInvocation.MyCommand.Name
-        inputText     = $text
-        selectedColor = $color
-        status        = 'Success'
-        timestamp     = [DateTime]::UtcNow.ToString('o')
+        tool       = $MyInvocation.MyCommand.Name
+        args       = [ordered]@{
+            text  = $text;
+            color = $color;
+            flag1 = $flag1.IsPresent;
+
+        }
+        arrayParam = ($arrayParam | Measure-Object -Sum).Sum
+        status     = 'Success'
+        timestamp  = [DateTime]::UtcNow.ToString('o')
     }
 
-    return $result | ConvertTo-Json -Depth 3
+
+    return (ConvertTo-Json -InputObject $result -Depth 3)
+}
+
+function q11 {
+    $result = [PSCustomObject]@{
+        message = "This is a test of the q11 function."
+        time    = (Get-Date).ToString('o')
+    }
+    return (ConvertTo-Json -InputObject $result -Depth 3)
 }
 
 # Skip server initialization when the script is dot-sourced (e.g. from tests).

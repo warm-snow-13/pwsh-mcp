@@ -31,6 +31,12 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
         BeforeAll {
 
             # Create a test function
+
+            function global:testNoHelp {
+            }
+        }
+
+        It 'Should return help info for a function' {
             function global:testSampleFunction {
                 <#
                 .SYNOPSIS
@@ -39,29 +45,29 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
                 [CmdletBinding()]
                 param()
             }
-            function global:testNoHelp {
-            }
-        }
-
-        It 'Should return help info for a function' {
             $functionInfo = Get-Command -Name testSampleFunction
             $result = mcp.getCmdHelpInfo -functionInfo $functionInfo
 
             $result | Should -Not -BeNullOrEmpty
-            $result.Name | Should -Be 'testSampleFunction'
-            $result.Synopsis | Should -Be 'This is a test function.'
+            $result | Should -Be 'This is a test function.'
+
         }
 
         It 'Should handle functions without synopsis' {
+            function global:testNoHelp {
+                return [string]::Empty
+            }
+
             $functionInfo = Get-Command -Name testNoHelp
             $result = mcp.getCmdHelpInfo -functionInfo $functionInfo
 
             $result | Should -Not -BeNullOrEmpty
-            $result.Name | Should -Be 'testNoHelp'
+            # The behavior of Get-Help when no help is available is to return the command name as the synopsis
+            $result | Should -Be $functionInfo.Name
         }
     }
 
-    Context 'mcp.getInputSchema' {
+    Context 'mcp.InputSchema.getSchema' {
         BeforeAll {
 
             function Test-StringParam {
@@ -101,14 +107,14 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
 
         It 'Should generate schema for function with string parameter' {
             $functionInfo = Get-Command -Name Test-StringParam
-            $result = mcp.getInputSchema -functionInfo $functionInfo
+            $result = mcp.InputSchema.getSchema -functionInfo $functionInfo
 
             $result | Should -Not -BeNullOrEmpty
         }
 
         It 'Should exclude common parameters' {
             $functionInfo = Get-Command -Name Test-StringParam
-            $result = mcp.getInputSchema -functionInfo $functionInfo
+            $result = mcp.InputSchema.getSchema -functionInfo $functionInfo
 
             $result[0].inputSchema.properties.Keys | Should -Not -Contain 'Verbose'
             $result[0].inputSchema.properties.Keys | Should -Not -Contain 'Debug'
@@ -120,7 +126,7 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
                 (Get-Command -Name Test-StringParam),
                 (Get-Command -Name Test-IntParam)
             )
-            $result = mcp.getInputSchema -functionInfo $functionInfo
+            $result = mcp.InputSchema.getSchema -functionInfo $functionInfo
 
             $result.Count | Should -BeGreaterOrEqual 2
         }
@@ -215,7 +221,7 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
             }
 
             $functionInfo = Get-Command -Name Test-ToolFunction
-            $tools = mcp.getInputSchema -functionInfo $functionInfo
+            $tools = mcp.InputSchema.getSchema -functionInfo $functionInfo
             Write-Verbose "Tools for testing: $($tools | ConvertTo-Json -Depth 1)"
         }
 
@@ -247,7 +253,7 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
             }
 
             $functionInfo = Get-Command -Name Test-ExecuteFunction
-            $tools = mcp.getInputSchema -functionInfo $functionInfo
+            $tools = mcp.InputSchema.getSchema -functionInfo $functionInfo
             Write-Verbose "Tools for testing: $($tools | ConvertTo-Json -Depth 1)"
         }
 
@@ -286,7 +292,7 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
             }
 
             $objectFunctionInfo = Get-Command -Name Test-ExecuteObjectFunction
-            $objectTools = mcp.getInputSchema -functionInfo $objectFunctionInfo
+            $objectTools = mcp.InputSchema.getSchema -functionInfo $objectFunctionInfo
 
             $request = @{
                 jsonrpc = '2.0'
@@ -314,6 +320,91 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
         AfterAll {
             Remove-Item -Path Function:global:Test-ExecuteFunction -ErrorAction SilentlyContinue
         }
+    }
+
+    Context 'mcp.tools/call error handling' {
+
+        It 'Should return error when tool is unknown' {
+            $tools = @(
+                [ordered]@{ name = 'SomeExistingTool' }
+            )
+
+            $request = @{
+                jsonrpc = '2.0'
+                id      = 10
+                method  = 'tools/call'
+                params  = @{
+                    name      = 'NonExistentTool'
+                    arguments = @{ }
+                }
+            }
+
+            $result = mcp.callTool -request $request -tools $tools
+
+            $result.isError | Should -Be $true
+            $result.text | Should -Match 'Unknown tool'
+        }
+
+        It 'Should return error when tool invocation raises an exception' {
+
+            function global:Test-RaiseError {
+                param(
+                    [Parameter(Mandatory = $true)]
+                    [string]$payload
+                )
+                $payload = $null
+                throw 'intentional failure'
+            }
+
+            $functionInfo = Get-Command -Name Test-RaiseError
+            $tools = mcp.InputSchema.getSchema -functionInfo $functionInfo
+
+            $request = @{
+                jsonrpc = '2.0'
+                id      = 11
+                method  = 'tools/call'
+                params  = @{
+                    name      = 'Test-RaiseError'
+                    arguments = @{ payload = 'x' }
+                }
+            }
+
+            $result = mcp.callTool -request $request -tools $tools
+
+            $result.isError | Should -Be $true
+            $result.text | Should -Match 'intentional failure'
+        }
+
+        It 'Should return error when business logic error occurs in tool' {
+
+            function global:Test-ValidationError {
+                param(
+                    [ValidateLength(1, 3)]
+                    [string]$payload
+                )
+                $payload = $null
+                return "received: $payload"
+            }
+
+            $functionInfo = Get-Command -Name Test-ValidationError
+            $tools = mcp.InputSchema.getSchema -functionInfo $functionInfo
+
+            $request = @{
+                jsonrpc = '2.0'
+                id      = 11
+                method  = 'tools/call'
+                params  = @{
+                    name      = 'Test-ValidationError'
+                    arguments = @{ payload = 'aaaa' }
+                }
+            }
+
+            $result = mcp.callTool -request $request -tools $tools
+
+            $result.isError | Should -Be $true
+            $result.text | Should -Match 'The character length of the 4 argument is too long.'
+        }
+
     }
 
     Context 'mcp.requestHandler - notifications' {
@@ -359,7 +450,7 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
             $result.jsonrpc | Should -Be '2.0'
             $result.id | Should -Be 1
             $result.error.code | Should -Be -32601
-            $result.error.message | Should -Be 'Method not found'
+            $result.error.message | Should -Be 'Request method not found'
         }
     }
 
