@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PowerShell Version](https://img.shields.io/badge/PowerShell-7.5-blue.svg)](https://github.com/PowerShell/PowerShell)
 [![build](https://github.com/warm-snow-13/pwsh-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/warm-snow-13/pwsh-mcp/actions/workflows/ci.yml)
+[![PowerShell Gallery](https://img.shields.io/powershellgallery/v/pwsh.mcp)](https://www.powershellgallery.com/packages/wsh.mcp)
 [![Maintenance](https://img.shields.io/maintenance/yes/2026.svg)](https://github.com/warm-snow-13/pwsh-mcp)
 
 ![psmcp](./docs/assets/psmcp_2025.png)
