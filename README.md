@@ -179,9 +179,6 @@ To configure an MCP client, see the official documentation for the related clien
 - [Use MCP Servers in VS Code](https://code.visualstudio.com/docs/copilot/customization/mcp-servers)
 - [MCP Servers with the Gemini CLI](https://geminicli.com/docs/tools/mcp-server/)
 
-> [!NOTE]
-> GitHub Copilot CLI can reuse settings from VS Code. However, it currently does not recognize the ${workspaceFolder} template, so you should avoid using templates. Instead, provide either an absolute path in the mcp.json configuration file or a path relative to the project root.
-
 </details>
 
 ## Documentation
