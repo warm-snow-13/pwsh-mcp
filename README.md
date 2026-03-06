@@ -3,6 +3,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PowerShell Version](https://img.shields.io/badge/PowerShell-7.5-blue.svg)](https://github.com/PowerShell/PowerShell)
 [![build](https://github.com/warm-snow-13/pwsh-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/warm-snow-13/pwsh-mcp/actions/workflows/ci.yml)
+[![PowerShell Gallery version](https://img.shields.io/powershellgallery/v/pwsh.mcp)](https://www.powershellgallery.com/packages/pwsh.mcp)
+[![PowerShell Gallery downloads](https://img.shields.io/powershellgallery/dt/pwsh.mcp)](https://www.powershellgallery.com/packages/pwsh.mcp)
 [![Maintenance](https://img.shields.io/maintenance/yes/2026.svg)](https://github.com/warm-snow-13/pwsh-mcp)
 
 ![psmcp](./docs/assets/psmcp_2025.png)
@@ -176,9 +178,6 @@ To configure an MCP client, see the official documentation for the related clien
 
 - [Use MCP Servers in VS Code](https://code.visualstudio.com/docs/copilot/customization/mcp-servers)
 - [MCP Servers with the Gemini CLI](https://geminicli.com/docs/tools/mcp-server/)
-
-> [!NOTE]
-> GitHub Copilot CLI can reuse settings from VS Code. However, it currently does not recognize the ${workspaceFolder} template, so you should avoid using templates. Instead, provide either an absolute path in the mcp.json configuration file or a path relative to the project root.
 
 </details>
 
