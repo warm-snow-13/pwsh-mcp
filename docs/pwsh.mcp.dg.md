@@ -120,10 +120,6 @@ The MCP server can be configured in Visual Studio Code using the `mcp.json` file
         "-File",
         "${workspaceFolder}/samples/psmcp_hello_world.ps1"
       ],
-      "env": {                                  // Optional: environment variables
-        "PWSH_MCP_SERVER_LOG_LEVEL": "DEBUG",
-        "PWSH_MCP_SERVER_LOG_FILE_PATH": "${workspaceFolder}/logs/psmcp_hello_world.log"
-      },
       "dev": {                                  // Optional: development features
         "watch": "src/**/*.ps1"                 // Hot-reload on file changes
       }

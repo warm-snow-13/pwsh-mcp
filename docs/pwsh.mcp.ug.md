@@ -430,9 +430,8 @@ npx @modelcontextprotocol/inspector pwsh -NoProfile -File src/server1.ps1 \
 
 ## Debug MCP Server
 
-Enable hot-reload for faster development iterations. When `dev.watch` is configured, the MCP server will automatically restart when changes are detected in the specified files or directories.
-
-The [MCP developer guide](https://code.visualstudio.com/api/extension-guides/ai/mcp) describes how to create and register MCP servers in VS Code.
+**Hot Reloading**
+When developing MCP servers, you can enable development mode for MCP servers by adding a dev key to the MCP server configuration. When `dev.watch` is configured, the MCP server will automatically restart when changes are detected in the specified files or directories.
 
 ```jsonc
   "dev": {
@@ -440,27 +439,12 @@ The [MCP developer guide](https://code.visualstudio.com/api/extension-guides/ai/
   }
 ```
 
-## Logging Configuration
+**MCP output log**
+When VS Code encounters an issue with an MCP server, it shows an error indicator in the Chat view. Select the error notification in the Chat view, and then select the Show Output option to view the server logs. Alternatively, run MCP: List Servers from the Command Palette, select the server, and then choose Show Output.
 
-The module includes a file logging subsystem that can be configured using environment variables. Logs can help with debugging and monitoring your MCP server.
+**MCP client Log:**
 
-MCP PWSH server supports environment variables for runtime configuration:
-
-- `PWSH_MCP_SERVER_LOG_LEVEL` - Set the minimum logging level (e.g., DEBUG, INFO)
-- `PWSH_MCP_SERVER_LOG_FILE_PATH` - Specify the file path for log output
-
-**Example:** `.vscode/mcp.json`
-
-```jsonc
-"env": {
-  "PWSH_MCP_SERVER_LOG_LEVEL": "DEBUG",
-  "PWSH_MCP_SERVER_LOG_FILE_PATH": "${workspaceFolder}/logs/server.log"
-}
-```
-
-> [!NOTE]
-> Copilot CLI can write its own session logs.
-> Log files for Copilot CLI sessions are stored at `~/.copilot/session-state/`.
+MCP clients have logging capabilities that can be used for debugging. For example, GitHub Copilot CLI writes session logs to `~/.copilot/session-state/`, which can be helpful for diagnosing issues with your MCP server.
 
 ## Annotations
 

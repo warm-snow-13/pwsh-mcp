@@ -14,8 +14,6 @@ param()
 # Use the relative path to import the module
 Import-Module $PSScriptRoot/../src/pwsh.mcp/pwsh.mcp.psd1 -Force -ErrorAction Stop
 
-$env:PWSH_MCP_SERVER_LOG_FILE_PATH = [System.IO.Path]::ChangeExtension($MyInvocation.MyCommand.path, ".log")
-
 function hello_world {
     [CmdletBinding()]
     [OutputType([String])]
