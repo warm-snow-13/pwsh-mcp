@@ -28,6 +28,8 @@
     Justification = 'Used for CI script output.'
 )]
 [CmdletBinding(
+    SupportsShouldProcess = $true,
+    ConfirmImpact = [System.Management.Automation.ConfirmImpact]::Low,
     HelpUri = 'https://github.com/warm-snow-13/pwsh-mcp/blob/main/README.md'
 )]
 param(
