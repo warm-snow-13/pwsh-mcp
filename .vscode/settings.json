@@ -12,7 +12,8 @@
     ".where": "markdown",
     "*.ps1xml": "xml",
     "*.Format.ps1xml": "xml",
-    "*.Types.ps1xml": "xml"
+    "*.Types.ps1xml": "xml",
+    "*.psd1": "powershellDataFile"
   },
   /*
     Per-language editor settings. See:
@@ -147,6 +148,10 @@
     "editor.formatOnType": true,
     "editor.formatOnPaste": true,
     "files.encoding": "utf8bom",
+  },
+  "[powershellDataFile]": {
+    // Disables format-on-save for manifest files (*.psd1).
+    "editor.formatOnSave": false
   },
   "coverage-gutters.showGutterCoverage": true,
   "coverage-gutters.showLineCoverage": true,
