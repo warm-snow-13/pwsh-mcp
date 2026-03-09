@@ -165,7 +165,7 @@ Example `.vscode/mcp.json` configuration for the above script:
         "-NoProfile",
         "-NoLogo",
         "-File",
-        "samples/psmcp_echo.ps1"
+        "${workspaceFolder}/path/to/your/script.ps1"
       ]
     }
   }
