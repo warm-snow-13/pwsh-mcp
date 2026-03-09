@@ -135,7 +135,7 @@ This example shows how to expose a simple PowerShell function as an MCP tool.
 # Import the MCP server module
 Import-Module pwsh.mcp -Force -ErrorAction Stop
 
-# Define a simple Hello World function
+# Define a simple echo function
 function get_echo {
     [CmdletBinding()]
     param (
