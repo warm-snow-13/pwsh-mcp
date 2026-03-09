@@ -22,8 +22,6 @@ CI_SCRIPT := ./ci.ps1
 SRC_DIR := ./src
 TEST_DIR := ./tests
 SCRIPTS_DIR := ./scripts
-COVERAGE_DIR := ./coverage
-LOG_DIR := ./logs
 
 # ============================================================================
 # PHONY Targets Declaration
@@ -115,11 +113,6 @@ format: ## Format PowerShell sources (Invoke-Formatter)
 
 clean: ## Remove coverage/log artifacts (safe)
 	@echo "Cleaning up coverage and build artifacts..."
-	$(PWSH) $(PWSH_FLAGS) -Command "gci -Path $(COVERAGE_DIR) -Recurse -File | Remove-Item"
-	$(PWSH) $(PWSH_FLAGS) -Command "gci -Path $(LOG_DIR) -Recurse -File | Remove-Item"
-
-clean-jarvis: ## Remove artifacts
-	@echo "Cleaning up all artifacts..."
 	$(PWSH) $(PWSH_FLAGS) -File jarvis.ps1 -action clean
 
 mc-inspector: ## Launch MCP Inspector (requires Node.js + npx)

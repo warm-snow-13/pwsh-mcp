@@ -14,26 +14,31 @@ param()
 # Use the relative path to import the module
 Import-Module $PSScriptRoot/../src/pwsh.mcp/pwsh.mcp.psd1 -Force -ErrorAction Stop
 
-$env:PWSH_MCP_SERVER_LOG_FILE_PATH = [System.IO.Path]::ChangeExtension($MyInvocation.MyCommand.path, ".log")
-
-function hello_world {
+function get_echo {
+    <#
+    .SYNOPSIS
+        Echoes the provided text.
+    .DESCRIPTION
+        This function returns a custom object containing the echoed text and a unique identifier.
+    #>
+    [Annotations(Title = 'Echo', ReadOnlyHint = $true)]
     [CmdletBinding()]
     [OutputType([String])]
     param(
         [Parameter(
             Mandatory = $false,
-            HelpMessage = 'Name to greet.'
+            HelpMessage = 'Text to echo.'
         )]
         [string]
-        $Name = "World"
+        $text = "lorem ipsum"
     )
     return [PSCustomObject]@{
-        text = "Hello, $Name!"
-        who  = $MyInvocation.InvocationName
+        text = "$text"
+        id   = [Guid]::NewGuid().ToString()
     }
 }
 
 # Skip server initialization when the script is dot-sourced.
 if ($MyInvocation.InvocationName -ne '.') {
-    New-MCPServer -functionInfo (Get-Item Function:hello_world -ErrorAction Stop)
+    New-MCPServer -functionInfo (Get-Item Function:get_echo -ErrorAction Stop)
 }

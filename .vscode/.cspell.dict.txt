@@ -1,4 +1,5 @@
 DontShow
+ipinfo
 osascript
 psmcp
 pwshmcp

@@ -39,9 +39,6 @@ function abc {
     .PARAMETER number
         Optional integer (1-100). Default: 42.
 
-    .OUTPUTS
-        System.String (JSON)
-
     .ROLE
         Administrator, User
 
@@ -86,21 +83,6 @@ function cde {
     <#
     .SYNOPSIS
         Process input text and optional color selection.
-
-    .DESCRIPTION
-        Uses required parameters and validation.
-
-    .PARAMETER text
-        Required string (1-10 chars).
-
-    .PARAMETER color
-        Optional color selection. Allowed values: Red, Green, Blue.
-
-    .PARAMETER flag1
-        Optional switch parameter.
-
-    .PARAMETER arrayParam
-        Optional array of integers.
     #>
     [Annotations(
         Title = "Process Demo Data",
@@ -148,7 +130,6 @@ function cde {
         timestamp  = [DateTime]::UtcNow.ToString('o')
     }
 
-
     return (ConvertTo-Json -InputObject $result -Depth 3)
 }
 
@@ -159,6 +140,11 @@ function q11 {
     }
     return (ConvertTo-Json -InputObject $result -Depth 3)
 }
+
+$env:PWSH_MCP_SERVER_LOG_FILE_PATH = [System.IO.Path]::ChangeExtension(
+    $MyInvocation.MyCommand.path,
+    ".log"
+)
 
 # Skip server initialization when the script is dot-sourced (e.g. from tests).
 if ($MyInvocation.InvocationName -ne '.') {
