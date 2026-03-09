@@ -99,7 +99,7 @@ Typical scenarios include automating repetitive tasks, exposing existing scripts
 
 ## Requirements
 
-- PowerShell 7.5 or later (cross-platform)
+- [PowerShell](https://github.com/PowerShell/PowerShell) 7.5 or later (cross-platform)
 - MCP client that supports stdio transport (Visual Studio Code with GitHub Copilot, Gemini CLI, Copilot CLI).
 
 ## Compatibility
@@ -111,6 +111,7 @@ The PowerShell MCP server has been tested with the following MCP clients:
 - [GitHub Copilot](https://code.visualstudio.com/docs/copilot/overview) – AI coding assistant.
 - [GitHub Copilot CLI](https://github.com/features/copilot/cli) – command-line interface for GitHub Copilot.
 - [Gemini CLI](https://geminicli.com/docs/) – interactive MCP-enabled REPL environment.
+- [Claude Desktop](https://support.claude.com/en/) - AI assistant.
 
 ## Getting Started
 
@@ -130,25 +131,22 @@ This example shows how to expose a simple PowerShell function as an MCP tool.
 
 ⏺ **Create a PowerShell script** that defines one or more functions and imports the PowerShell MCP module.
 
-The PowerShell MCP server sample: [samples/psmcp_hello_world.ps1](samples/psmcp_hello_world.ps1)
-
 ```powerShell
 # Import the MCP server module
 Import-Module pwsh.mcp -Force -ErrorAction Stop
 
-# Define a simple Hello World function
-function hello_world {
-    [OutputType([System.String])]
+# Define a simple echo function
+function get_echo {
     [CmdletBinding()]
     param (
-      [Parameter(Mandatory = $false, HelpMessage = "Name to greet")]
-      [string] $Name = "John Doe"
+      [Parameter(Mandatory = $false, HelpMessage = "Text to echo")]
+      [string] $text = "Lorem Ipsum"
     )
-    return "Hello, $Name!"
+    return "Echo, $text!"
 }
 
 # Start the MCP server and pass the functions to expose.
-New-MCPServer -FunctionInfo (Get-Item Function:hello_world)
+New-MCPServer -FunctionInfo (Get-Item Function:get_echo)
 ```
 
 ⏺ **Add MCP Server Configuration (Visual Studio Code):**
@@ -167,7 +165,7 @@ Example `.vscode/mcp.json` configuration for the above script:
         "-NoProfile",
         "-NoLogo",
         "-File",
-        "${workspaceFolder}/samples/psmcp_hello_world.ps1"
+        "${workspaceFolder}/path/to/your/script.ps1"
       ]
     }
   }
