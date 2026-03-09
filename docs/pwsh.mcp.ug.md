@@ -90,7 +90,7 @@ The '.Synopsis' comment-based help section is used as the tool description in th
 
 Below is a brief list of PowerShell parameter types that the module automatically maps to JSON Schema types when generating tool descriptions.
 
-**Simple types** defined in the the specification and their PowerShell equivalents:
+**Simple types** defined in the specification and their PowerShell equivalents:
 
 - **string**: `[string]`, `[System.String]` — JSON Schema: `type: "string"`. Used for text values.
 - **integer**: `[int]`, `[long]`, `[System.Int32]`, `[System.Int64]` — JSON Schema: `type: "integer"`. Whole numbers.
