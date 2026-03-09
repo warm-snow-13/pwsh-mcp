@@ -84,7 +84,7 @@ When a parameter has a `mandatory=true` attribute, it will be automatically expo
 The '.Synopsis' comment-based help section is used as the tool description in the generated schema.
 
 > [!IMPORTANT]
-> MCP servers use **stdio** transport. Avoid any **non-protocol output** to stdout/stderr (for example, `Write-Host`, `Write-Verbose`, `Write-Debug`, `Write-Information`, or external tools that print), because it can corrupt the JSON-RPC stream).
+> MCP servers use **stdio** transport. Avoid any **non-protocol output** to stdout/stderr (for example, `Write-Host`, `Write-Verbose`, `Write-Debug`, `Write-Information`, or external tools that print), because it can corrupt the JSON-RPC stream.
 
 ### Supported parameter types
 
