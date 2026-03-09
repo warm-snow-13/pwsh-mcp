@@ -111,6 +111,7 @@ The PowerShell MCP server has been tested with the following MCP clients:
 - [GitHub Copilot](https://code.visualstudio.com/docs/copilot/overview) – AI coding assistant.
 - [GitHub Copilot CLI](https://github.com/features/copilot/cli) – command-line interface for GitHub Copilot.
 - [Gemini CLI](https://geminicli.com/docs/) – interactive MCP-enabled REPL environment.
+- [Claude Desktop](https://support.claude.com/en/) - AI assistant.
 
 ## Getting Started
 
