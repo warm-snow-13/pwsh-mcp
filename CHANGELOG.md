@@ -12,7 +12,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+<!-- markdownlint-disable-file MD024 -->
+
 ## [Unreleased]
+
+### Added
+
+## [0.1.4] - 2026-03-09
+
+### Added
+
+- Gemini MCP client configuration for launching `src/server1.ps1`
+- Sample self-aware MCP server exposing runtime context information with optional location lookup
+- Unit tests for the echo sample and for version increment helper behavior in `PSCoreUtils`
+- PowerShell Gallery badges and links in the README
+
+### Changed
+
+- Renamed the minimal sample server from `psmcp_hello` to `psmcp_echo` and refreshed its implementation
+- Simplified logging payload generation and console notification structure for MCP diagnostics
+- Enhanced the user guide with clearer server implementation guidance, parameter schema notes.
+- Improved CI and automation scripts for better workflow and artifact management.
+- Refreshed project metadata and developer configuration, editor settings, and spelling dictionary updates
+
+### Removed
+
+- Legacy `psmcp_hello` sample script and its associated tests
 
 ## [0.1.3] - 2026-03-04
 
