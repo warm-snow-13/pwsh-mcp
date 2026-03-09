@@ -526,12 +526,6 @@ function mcp.core.stdio.main {
 
             $request = ConvertFrom-Json -InputObject $line -Depth 10 -AsHashtable -ErrorAction Stop
 
-            # Log parsed method/id (non-sensitive)
-            # try {
-            #     psmcp.writeLog -LogEntry ([ordered]@{ WHAT = '[PARSED_REQUEST]'; METHOD = $request.method; ID = $request.id })
-            # }
-            # catch { }
-
             if ($null -eq $request.jsonrpc -or $request.jsonrpc -ne '2.0') {
                 continue;
                 # skip processing - invalid jsonrpc version
