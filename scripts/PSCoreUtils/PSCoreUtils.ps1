@@ -303,17 +303,42 @@ function psmcp.update_module_manifest {
             HelpMessage = 'Prerelease label to set in the module manifest.'
         )]
         [string]
-        $Prerelease = $null
+        $Prerelease = $null,
+
+        [Parameter(
+            Mandatory = $false,
+            HelpMessage = 'Which part of version to increment when -Version is not specified.'
+        )]
+        [ValidateSet('Major', 'Minor', 'Build')]
+        [string]
+        $VersionPart = 'Build',
+
+        [Parameter(
+            Mandatory = $false,
+            HelpMessage = 'Exact module version to set, e.g. 1.2.3. Has priority over increment mode.'
+        )]
+        [version]
+        $Version
     )
     process {
         Write-Verbose -Message ([string]::Format('{0} started.', $MyInvocation.MyCommand.Name))
         $moduleInfo | Select-Object -Property name, version | Format-List -Force | Out-String | Write-Verbose
 
+        $targetVersion = $moduleInfo.Version
+
+        if ($PSBoundParameters.ContainsKey('Version')) {
+            $targetVersion = $Version
+        }
+
+        if ($PSBoundParameters.ContainsKey('VersionPart')) {
+            $targetVersion = utils.set_version -Version $moduleInfo.Version -Part $VersionPart
+        }
+
         $updateModuleManifestParams = [ordered]@{
 
             Path          = [io.path]::ChangeExtension($moduleInfo.Path, '.psd1')
 
-            ModuleVersion = utils.set_version -version ($moduleInfo.Version) -part 'build'
+            ModuleVersion = $targetVersion
 
             Prerelease    = ($PSBoundParameters.Prerelease) ? $Prerelease : $null
 
@@ -362,11 +387,8 @@ function psmcp.publish_module_to_local_repo {
         | Out-String
         | Write-Verbose
 
-        Write-Progress -Activity "Publishing module $($moduleInfo.Name) to LocalRepo" -Status "In Progress"
-
         Publish-Module @parameters -Verbose:$false -ErrorAction Stop
 
-        Write-Progress -Activity "Publishing module $($moduleInfo.Name) to LocalRepo" -Completed
     }
 }
 

@@ -9,7 +9,6 @@
 .PARAMETER action
     Action to perform.
     - build: Updates manifest + publishes module to local PSRepository.
-    - install: Registers local PSRepository used by build/deploy.
     - deploy: Installs module from the local PSRepository.
     - remove: Uninstalls module from CurrentUser scope.
     - tag: Creates a git annotated tag based on ModuleVersion.
@@ -27,11 +26,12 @@
 )]
 [CmdletBinding(
     SupportsShouldProcess = $true,
-    ConfirmImpact = 'Low'
+    ConfirmImpact = [System.Management.Automation.ConfirmImpact]::Low
 )]
 param(
     [Parameter(
-        HelpMessage = 'Action to perform: build, clean, hello, install, tag...'
+        Mandatory = $false,
+        HelpMessage = 'Action to perform: build, deploy, ...'
     )]
     [validateSet(
         'build',
@@ -39,8 +39,7 @@ param(
         'deploy',
         'tag',
         'hello',
-        'remove',
-        'install'
+        'remove'
     )]
     [string]
     $action,
@@ -52,14 +51,15 @@ param(
     [system.diagnostics.stopwatch]
     $stopWatch = [system.diagnostics.stopwatch]::StartNew()
 )
+
 # -- Set Debug and Verbose preferences to Continue --
 Get-Item Variable:/DebugPreference, Variable:/VerbosePreference
 | Set-Variable -Value ([System.Management.Automation.ActionPreference]::SilentlyContinue) -Verbose -PassThru
-| Format-List -Force -Property Name, Value, Description
+| Format-Table -Force -Property Name, Value
 
-# -- Determine action to perform --
-# $action = ([string]::IsNullOrWhiteSpace($action)) ? 'clean' : $action
-Write-Host "action: [$action]"
+# -- Determine default action to perform if not specified --
+$action = ([string]::IsNullOrWhiteSpace($action)) ? 'hello' : $action
+"action: $action" | Write-Host -ForegroundColor Blue
 
 if (-not $PSBoundParameters.Verbose) {
     Write-Debug -Message (
@@ -73,8 +73,6 @@ if (-not $PSBoundParameters.Verbose) {
 Set-Variable -Name context -Value (
     [ordered]@{
 
-        moduleInfo         = $null
-
         gitRoot            = Get-Item -Path "$PSScriptRoot" -ErrorAction Stop -Verbose
 
         src                = Get-Item -Path "$PSScriptRoot/src" -ErrorAction Stop -Verbose
@@ -83,7 +81,7 @@ Set-Variable -Name context -Value (
         localRepoPath      = "$HOME/Projects/.LocalPSRepository"
         localRepoName      = "LocalRepo"
 
-        moduleBase         = Get-Item -Path  "$PSScriptRoot/src/pwsh.mcp" -ErrorAction Stop -Verbose
+        moduleBase         = Get-Item -Path "$PSScriptRoot/src/pwsh.mcp" -ErrorAction Stop -Verbose
         moduleManifestPath = Get-Item -Path "$PSScriptRoot/src/pwsh.mcp/pwsh.mcp.psd1" -ErrorAction Stop -Verbose
 
     }) -Scope Script -Description 'Settings for the pwsh.mcp project.'
@@ -94,18 +92,18 @@ Import-Module "$PSScriptRoot/scripts/PSCoreUtils/PSCoreUtils.psm1" -Force -Error
 
 # PSMCP | ⚠️ IMPORTANT: force re-import to get the latest version
 Write-Verbose "Import PSMCP ..."
-$context.moduleInfo = Import-Module ($context.moduleManifestPath) -Force -ErrorAction Stop -PassThru -Verbose:$false
-$context.moduleInfo
-| Select-Object -Property  name, version
-| Format-List -Force
+
+Import-Module "$PSScriptRoot/src/pwsh.mcp/pwsh.mcp.psd1" -Force -ErrorAction Stop -PassThru -Verbose:$false
+| Format-List -Property  name, version -Force
 | Out-String
-| Write-Host -ForegroundColor Cyan
+| Write-Host -ForegroundColor Blue
 
 Write-Host "Getting the latest git tag ..."
 git --git-dir="$PSScriptRoot/.git" describe --abbrev=0 2>$null
 
 switch ($action.ToLower()) {
     'deploy' {
+        Write-Verbose "* Deploying module from the local PSRepository"
         # Get module info before installation
         Get-Module -Name pwsh.mcp -ListAvailable
         | Format-List -Force -Property Name, Version, Path, InstalledLocation
@@ -120,20 +118,26 @@ switch ($action.ToLower()) {
         #>
     }
     'remove' {
-        # Uninstall module
         Write-Verbose "* Uninstalling module"
-        Uninstall-Module -Name pwsh.mcp -AllVersions -Force -ErrorAction SilentlyContinue -Verbose
+        if ($PSCmdlet.ShouldProcess("pwsh.mcp", "Remove module")) {
+            Uninstall-Module -Name pwsh.mcp -AllVersions -Force -ErrorAction SilentlyContinue -Verbose
+        }
     }
     'build' {
 
-        # $psmcpModule = Import-Module "$PSScriptRoot/src/pwsh.mcp/pwsh.mcp.psd1" -Force -PassThru -ErrorAction Stop
+        # $psmcpModule = Import-Module "$PSScriptRoot/src/pwsh.mcp/pwsh.mcp.psd1" -Force -PassThru
         # $psmcpModule
         # | Select-Object -Property * -ExcludeProperty Definition
         # | Format-List
 
         '--- Update Module Manifest ---'
+        $updateManifestParams = @{
+            Verbose     = $false
+            VersionPart = 'build'
+        }
+
         Import-Module  "$PSScriptRoot/src/pwsh.mcp/pwsh.mcp.psd1" -Force -PassThru -ErrorAction Stop -Verbose:$false
-        | psmcp.update_module_manifest -Verbose:$false
+        | psmcp.update_module_manifest @updateManifestParams
 
         '--- Publish Module to Local Repo ---'
         Import-Module "$PSScriptRoot/src/pwsh.mcp/pwsh.mcp.psd1" -Force -PassThru -ErrorAction Stop -Verbose:$false
@@ -162,7 +166,7 @@ switch ($action.ToLower()) {
     }
     'clean' {
         Write-Verbose "Cleaning up artifacts ..."
-        # Clean: remove all log files in the project root and subdirectories
+        # Clean: remove all log files in the project
         Get-ChildItem -Path $PSScriptRoot -Filter *.log -Recurse -File
         | Remove-Item -Verbose -ErrorAction Stop
         # Clean: Remove unit test artifacts
@@ -194,6 +198,7 @@ switch ($action.ToLower()) {
             tag    = ($tag ?? [string]::Empty).Trim()
         } | Format-List -Force | Out-String | Write-Host -ForegroundColor Yellow
     }
+
     default {
         Write-Error -Message ([string]::Format('Action "{0}" is not recognized.', $action))
     }
