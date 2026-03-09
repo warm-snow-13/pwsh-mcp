@@ -36,5 +36,4 @@ logs/
 scratch.ps1
 
 # AI assistant sessions and data
-.gemini/
 .claude/

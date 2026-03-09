@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "psmcp.server1": {
+      "command": "pwsh",
+      "args": [
+        "-NoLogo",
+        "-NoProfile",
+        "-File",
+        "src/server1.ps1"
+      ]
+    }
+  }
+}
