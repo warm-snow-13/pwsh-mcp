@@ -39,8 +39,15 @@ Get-Command -Module pwsh.mcp
 
 ### Server Implementation
 
+The server may contain internal functions to support required functionality and external functions that are exposed as MCP tools.
+
+External functions serve as a contract for clients. According to the specification, tools can accept parameters of simple types (string, number, boolean) as well as arrays of these types.
+
+The module automatically generates the tool schema based on the function signature and the attributes applied to its parameters.
+
 The repository includes several functional examples in the [samples/](../samples/) directory.
-This [example](samples/psmcp_hello_world.ps1) demonstrates a minimal PowerShell MCP server.
+
+This simple example demonstrates a minimal PowerShell MCP server.
 
 ```powershell
 # Import MCP module
@@ -56,7 +63,10 @@ function get_greeting {
     [OutputType([string])]
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $false, HelpMessage = "Name to greet")]
+        [Parameter(
+          Mandatory = $false,
+          HelpMessage = "Name to greet, Limit 25 characters."
+        )]
         [ValidateLength(1, 25)]
         [string] $Name = "World"
     )
@@ -74,24 +84,24 @@ When a parameter has a `mandatory=true` attribute, it will be automatically expo
 The '.Synopsis' comment-based help section is used as the tool description in the generated schema.
 
 > [!IMPORTANT]
-> MCP servers use **stdio** transport. Avoid any **non-protocol output** to stdout/stderr (for example, `Write-Host`, `Write-Verbose`, `Write-Debug`, `Write-Information`, or external tools that print), because it can corrupt the JSON-RPC stream. Prefer returning values and use file logging for diagnostics (see the [Logging Configuration](#logging-configuration) section).
+> MCP servers use **stdio** transport. Avoid any **non-protocol output** to stdout/stderr (for example, `Write-Host`, `Write-Verbose`, `Write-Debug`, `Write-Information`, or external tools that print), because it can corrupt the JSON-RPC stream).
 
 ### Supported parameter types
 
 Below is a brief list of PowerShell parameter types that the module automatically maps to JSON Schema types when generating tool descriptions.
 
-Simple types:
+**Simple types** defined in the the specification and their PowerShell equivalents:
 
 - **string**: `[string]`, `[System.String]` — JSON Schema: `type: "string"`. Used for text values.
 - **integer**: `[int]`, `[long]`, `[System.Int32]`, `[System.Int64]` — JSON Schema: `type: "integer"`. Whole numbers.
 - **number**: `[double]`, `[float]`, `[decimal]` — JSON Schema: `type: "number"`. Floating-point numbers.
 - **boolean**: `[bool]`, `[System.Boolean]`, `switch` — JSON Schema: `type: "boolean"`. Flags (`switch`) are treated as boolean
 
-Complex types:
+**Complex types**:
 
 - **array**: typed arrays (e.g. `[string[]]`, `[int[]]`) — JSON Schema: `type: "array"` with `items` of the corresponding type.
 
-Limitations:
+**Limitations**:
 
 - `[System.Management.Automation.ActionPreference]`,`[ScriptBlock]` are excluded from the schema generator.
 - `[object]`,`[hashtable]`: treated as `type: "object"
