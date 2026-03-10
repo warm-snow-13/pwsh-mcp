@@ -173,18 +173,8 @@ function psmcp.new_module_manifest {
         Create module manifest for PSMCP module
     .NOTES
     ---
-    - [REF:](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/new-modulemanifest)
+    [REF:](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/new-modulemanifest)
     ---
-    Description = @'
-        PowerShell Model Control Protocol (PSMCP) module for creating and managing MCP servers.
-        AI-code co-pilot.
-    '@
-
-    TODO: ps-module-manifest
-    - Define module versioning strategy (Semantic Versioning recommended).
-    - Automate version updates during build/release process.
-    - Create a new version object: new Version(major, minor, build, revision);
-
     #>
     $moduleManifestParams = @{
         Guid                 = 'e1c2a545-8acd-4493-a80e-bfd3494c001f'
@@ -267,6 +257,9 @@ function pwsh.set_local_repository {
     # "$HOME/.local/share/powershell/Modules/LocalRepo"
     # "$HOME/Projects/.LocalPSRepository"
     # [IO.DirectoryInfo]::new($context.localRepoPath).FullName
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSAvoidUsingWriteHost', ''
+    )]
     [CmdletBinding()]
     param()
     $Repo = "$home/Projects/.LocalPSRepository"
@@ -447,6 +440,9 @@ function vscode.add_mcp_server {
         https://code.visualstudio.com/api/extension-guides/ai/mcp
 
     #>
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSAvoidUsingWriteHost', ''
+    )]
     [Alias('Add-McpServer')]
     [CmdletBinding()]
     param(

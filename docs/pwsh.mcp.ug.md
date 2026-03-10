@@ -444,9 +444,21 @@ npx @modelcontextprotocol/inspector pwsh -NoProfile -File src/server1.ps1 \
 When developing MCP servers, you can enable development mode for MCP servers by adding a dev key to the MCP server configuration. When `dev.watch` is configured, the MCP server will automatically restart when changes are detected in the specified files or directories.
 
 ```jsonc
-  "dev": {
-    "watch": "samples/**/*.ps1"
+{
+  "pwsh.mcp.server1": {
+    "type": "stdio",
+    "command": "pwsh",
+    "args": [
+      "-NoLogo",
+      "-NoProfile",
+      "-File",
+      "src/server1.ps1"
+    ],
+    "dev": {
+      "watch": "src/**/*.{ps1,psm1,psd1}"
+    }
   }
+}
 ```
 
 **MCP output log**
