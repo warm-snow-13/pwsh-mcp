@@ -3,3 +3,4 @@ ipinfo
 osascript
 psmcp
 pwshmcp
+tccutil
