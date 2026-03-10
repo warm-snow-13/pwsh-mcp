@@ -47,7 +47,6 @@ param(
     [string]
     $action = 'analyze',
 
-    # TODO: add implementation
     [switch]$FailOnWarnings,
 
     # TODO: add implementation
