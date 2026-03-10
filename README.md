@@ -177,7 +177,7 @@ Example `.vscode/mcp.json` configuration for the above script:
 }
 ```
 
-Refer to the [user guide](./docs/pwsh.mcp.ug.md)￼for additional examples and advanced configuration.
+Refer to the [user guide](./docs/pwsh.mcp.ug.md) for additional examples and advanced configuration.
 
 To configure an MCP client, see the official documentation for the related client:
 
