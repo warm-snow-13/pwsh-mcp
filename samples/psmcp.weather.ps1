@@ -1,18 +1,27 @@
 <#
 .SYNOPSIS
- cmdlet: 910ec7b5-ed74-41d8-a54b-367c9cfdc1be
+    MCP sample exposing the `get-weather` function to fetch current weather via wttr.in
 #>
+
+Import-Module pwsh.mcp -ErrorAction Stop
+
 function get-weather {
     <#
     .SYNOPSIS
-        Retrieves the current weather for a specified location.
+        Retrieve a concise current-weather summary for a specified location (uses wttr.in).
     .DESCRIPTION
-        This function fetches the current weather information from the wttr.in service
-        for a given location and returns it in a human-readable format.
+        Calls the wttr.in HTTP API (using `format=4`) to obtain a short, human-readable
+        weather summary for the specified location and returns that summary as a single string.
+        The `unit` parameter is mapped to wttr.in query flags: "m" for metric (Celsius)
+        and "u" for imperial (Fahrenheit). Network failures are raised as terminating
+        errors because `Invoke-RestMethod` is executed with `ErrorAction = 'Stop'`.
     .PARAMETER location
-        The name of the location (city, country, etc.) for which to retrieve weather information.
+        The location to query (city, region, or country). Examples: "New York", "London".
+        The value is passed directly to wttr.in; provide a recognizable place name.
     .PARAMETER unit
-        The temperature unit to use in the weather report. Valid values are 'celsius' and 'fahrenheit'.
+        Temperature unit for the returned summary. Valid values: 'celsius' (metric, °C)
+        and 'fahrenheit' (imperial, °F). Default is 'celsius'. The parameter is mapped to
+        wttr.in query flags: 'celsius' => "m", 'fahrenheit' => "u".
 
     .NOTES
         Use 'https://wttr.in/:help?lang=en' for more information about the service and available options.
@@ -52,7 +61,5 @@ function get-weather {
     }
     Invoke-RestMethod @invokeRestMethodParams | Out-String
 }
-
-Import-Module pwsh.mcp -Force  -ErrorAction Stop
 
 New-MCPServer -functionInfo (Get-Item Function:get-weather)
