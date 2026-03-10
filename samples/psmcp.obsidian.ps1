@@ -1,13 +1,14 @@
 ﻿<#
 .SYNOPSIS
-    Sample MCP server for managing notes in Obsidian via CLI.
+    Simple MCP server for managing notes in Obsidian via CLI.
 
 .DESCRIPTION
-    This sample demonstrates how to create an MCP server that manages notes in Obsidian
+    This sample demonstrates how to create a simple MCP server that manages notes in Obsidian
     using the Obsidian CLI (requires Obsidian 1.12+ with CLI enabled).
     Exposes a tool to append content to today's daily note.
 
 .NOTES
+
     Prerequisites:
     - Obsidian 1.12+ installed with CLI enabled (Settings > General > Command line interface).
     - The 'obsidian' command must be available on PATH.
@@ -17,13 +18,15 @@
     Linux:            sudo ln -s /path/to/obsidian /usr/local/bin/obsidian
 
     Usage:
-        - Visual Studio Code:
-        #obsidian_append_daily_note content="Hello, this is a note from MCP!"
+
+        obsidian_append_daily_note content="Hello, this is a note from MCP!"
 
 .LINK
     https://help.obsidian.md/cli
 
 #>
+
+Import-Module pwsh.mcp -ErrorAction Stop
 
 if (-not (Get-Command Obsidian -ErrorAction SilentlyContinue)) {
     throw "The 'Obsidian' CLI was not found on PATH. Enable it in Obsidian Settings > General > Command line interface."
@@ -80,9 +83,6 @@ function obsidian_append_daily_note {
         } | ConvertTo-Json
     }
 }
-
-
-Import-Module -FullyQualifiedName "$PSScriptRoot/../src/pwsh.mcp/pwsh.mcp.psd1" -Force -ErrorAction Stop
 
 if ($MyInvocation.InvocationName -ne '.') {
     $tools = Get-Item Function:obsidian_append_daily_note -ErrorAction Stop
