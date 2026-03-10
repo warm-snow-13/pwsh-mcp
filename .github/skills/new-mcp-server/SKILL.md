@@ -40,7 +40,7 @@ Restrictions
 
 Skill guidance
 
-- For MCP-exposed functions in this repository, follow the existing sample convention: lowercase snake_case names.
+- For MCP-exposed functions, prefer lowercase snake_case names. Some existing samples (for example, 'get-weather') use kebab-case; choose one convention per server and apply it consistently.
 - Use comment-based help with accurate `.SYNOPSIS`, `.PARAMETER`, and `.OUTPUTS` sections.
 - Prefer single-quoted strings unless interpolation is required.
 - Use typed parameters and PowerShell validation attributes where appropriate.
