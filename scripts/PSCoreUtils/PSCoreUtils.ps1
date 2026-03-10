@@ -257,9 +257,6 @@ function pwsh.set_local_repository {
     # "$HOME/.local/share/powershell/Modules/LocalRepo"
     # "$HOME/Projects/.LocalPSRepository"
     # [IO.DirectoryInfo]::new($context.localRepoPath).FullName
-    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(
-        'PSAvoidUsingWriteHost', ''
-    )]
     [CmdletBinding()]
     param()
     $Repo = "$home/Projects/.LocalPSRepository"
@@ -440,9 +437,6 @@ function vscode.add_mcp_server {
         https://code.visualstudio.com/api/extension-guides/ai/mcp
 
     #>
-    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(
-        'PSAvoidUsingWriteHost', ''
-    )]
     [Alias('Add-McpServer')]
     [CmdletBinding()]
     param(
