@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    This MCP server script creates a new reminder in the macOS Reminders application.
+    Simple MCP-server for creating reminders in macOS Reminders app.
 
 .DESCRIPTION
     This MCP server script creates a new reminder in the macOS Reminders application using AppleScript. It includes a function to create a new reminder with specified title, detail, offset, and priority.
@@ -11,9 +11,35 @@
 
     Call the 'create_reminder' function with appropriate parameters to create a reminder.
 
-    copilot: #create_reminder call Alex at 17-00
+    github copilot: #create_reminder call Alex at 17-00
+
+    Troubleshooting:
+
+    The most common issues with this script are related to permissions and access to the Reminders app. If you encounter problems, please check the following:
+
+
+    1) Ensure your terminal has access to the Reminders app:
+
+        System Settings → Privacy & Security → Automation
+
+        Check that the following are listed and allowed for Automation:
+        - Terminal
+        - any other shell or terminal application you use to run the script
+
+        Make sure Reminders is enabled for the application you use.
+
+    2) If you experience access problems, reset the Reminders-related permissions with `tccutil`:
+
+        tccutil reset AppleEvents
+        tccutil reset Reminders
+
+    3) Quick test (should return list names):
+
+        osascript -e 'tell application "Reminders" to name of lists'
 
 #>
+
+Import-Module pwsh.mcp -Force  -ErrorAction Stop
 
 if (-not $IsMacOS) {
     throw "This MCP server is supported only on macOS."
@@ -157,11 +183,8 @@ function create_reminder {
         priority      = $priority
         status        = ($LASTEXITCODE -eq 0) ? 'Success' : "Failed (exit code $LASTEXITCODE)"
         output        = ($osaScriptOutput | Out-String).Trim()
-    } | ConvertTo-Json
+    }
 }
-
-Import-Module pwsh.mcp -Force  -ErrorAction Stop
-# Import-Module -FullyQualifiedName "$PSScriptRoot/../src/pwsh.mcp/pwsh.mcp.psd1" -Force -ErrorAction Stop
 
 $functionInfo = (Get-Item Function:create_reminder)
 New-MCPServer -functionInfo $functionInfo

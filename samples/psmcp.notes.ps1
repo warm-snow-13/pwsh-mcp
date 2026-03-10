@@ -1,12 +1,45 @@
 <#
 .SYNOPSIS
-    Sample MCP server for creating notes in macOS Notes app.
+    Simple MCP-server for creating notes in macOS Notes app.
 
 .DESCRIPTION
-    This sample demonstrates how to create a simple MCP server that can create notes in the macOS Notes application using AppleScript. It includes functions to get the default Notes account and folder, as well as a function to create a new note with specified text content.
+    This sample shows how to build a simple MCP server for the macOS Notes app by using AppleScript through `osascript`.
+
+    It exposes helper functions that resolve the default Notes account and folder, plus the `create_note` tool that creates a new note from the provided text.
+
+    If `account` or `targetFolder` is not provided, the script attempts to detect sensible defaults automatically. The tool then builds an AppleScript command, runs it with `osascript`, and returns a JSON result with the note title, target location, execution status, and any command output.
+
+    Dependencies:
+    - This script runs on macOS only.
+    - The `osascript` command must be available.
+
+
+    Troubleshooting:
+
+    The most common issues with this script are related to permissions and access to the Notes app. If you encounter problems, please check the following:
+
+    1) Ensure your terminal has access to the Notes app:
+
+        System Settings → Privacy & Security → Automation
+
+        Check that the following are listed and allowed for Automation:
+        - Terminal
+        - any other shell or terminal application you use to run the script
+
+        Make sure Notes is enabled for the application you use.
+
+    2) If you experience access problems, reset the Notes-related permissions with `tccutil`:
+
+        tccutil reset AppleEvents
+        tccutil reset Notes
+
+    3) Quick test (should return folder names):
+
+        osascript -e 'tell application "Notes" to name of folders'
 
 #>
-#Requires -Version 7.0
+
+Import-Module pwsh.mcp -ErrorAction Stop
 
 if (-not $IsMacOS) {
     throw "This MCP server is supported only on macOS."
@@ -126,7 +159,10 @@ function create_note {
     } | ConvertTo-Json
 }
 
-Import-Module -FullyQualifiedName "$PSScriptRoot/../src/pwsh.mcp/pwsh.mcp.psd1" -Force -ErrorAction Stop
 
-$functionInfoArray = (Get-Item Function:create_note, Function:get_default_account, Function:get_default_folder)
+$functionInfoArray = (
+    Get-Item -Path Function:create_note,
+    Get-Item -Path Function:get_default_account,
+    Get-Item -Path Function:get_default_folder
+)
 New-MCPServer -functionInfo $functionInfoArray

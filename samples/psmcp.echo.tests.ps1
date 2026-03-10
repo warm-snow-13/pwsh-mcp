@@ -1,14 +1,16 @@
 ﻿<#
 .SYNOPSIS
-    Unit tests for sample MCP server.
+    Unit tests for the MCP server.
+
 #>
 
 BeforeAll {
-    # Dot-source the sample script to make its functions available for testing
-    . "$PSScriptRoot/psmcp_echo.ps1"
+    # Dot-source loading to make its functions available for testing
+    . $PSCommandPath.Replace('.tests.ps1', '.ps1')
+
 }
 
-Describe 'ps mcp echo sample script' -Tag 'Samples', 'Unit' {
+Describe 'PSMCP Echo Sample Script' -Tag 'Samples', 'Unit' {
 
     It 'Should expose get_echo function after dot-sourcing' {
         Get-Command -Name get_echo -CommandType Function | Should -Not -BeNullOrEmpty

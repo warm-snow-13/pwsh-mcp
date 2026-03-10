@@ -1,44 +1,75 @@
 <#
 .SYNOPSIS
- cmdlet: 2d21c5df-5abc-4f41-97f3-b6bba0fd8f26
+    Simple MCP-server to retrieve public IP information from ipinfo.io with an in-memory cache.
+
+.DESCRIPTION
+    This sample MCP server script defines a function `get_ipinfo` that retrieves public IP information from ipinfo.io with an in-memory cache. The function performs an HTTP GET request to https://ipinfo.io/json and returns the deserialized JSON payload as a PSCustomObject. The script also sets up an MCP server to expose the `get_ipinfo` function.
+
 #>
 [CmdletBinding()]
 param()
 
-Import-Module pwsh.mcp -Force  -ErrorAction Stop
-# Import-Module -FullyQualifiedName "$PSScriptRoot/../src/pwsh.mcp/pwsh.mcp.psd1" -Force -ErrorAction Stop
+Import-Module pwsh.mcp -ErrorAction Stop
 
-function get_public_ip {
+$script:psmcp_ipinfo_cache = $script:psmcp_ipinfo_cache ?? $null
+
+function get_ipinfo {
     <#
     .SYNOPSIS
-        Get my public IP Address
+        Retrieve public IP information from ipinfo.io with an in-memory cache.
+
     .DESCRIPTION
-        Uses https://ipinfo.io/json to get the public IP Address.
-    .EXAMPLE
-        Get-PublicIPAddress
+        Performs an HTTP GET to https://ipinfo.io/json and returns the full deserialized JSON payload as a PSCustomObject (ipinfo fields). The deserialized JSON response from ipinfo.io, containing fields such as ip, city, region, country, loc, org, postal, timezone, etc.
+
+        The function uses a script-scoped cache with a TTL of 600 seconds and a 5-second HTTP timeout.
+
+    .PARAMETER ForceRefresh
+        When true, bypasses the cache and forces a fresh HTTP request.
+
     .OUTPUTS
-        Returns the public IP Address of the machine running the script.
+        [PSCustomObject]
     #>
-    [Annotations(Title = "Get public IP", ReadOnlyHint = $true, OpenWorldHint = $true)]
-    [OutputType([string])]
+    [Annotations(
+        Title = 'Get IP Information',
+        ReadOnlyHint = $true,
+        OpenWorldHint = $true
+    )]
+    [OutputType([PSCustomObject])]
     [CmdletBinding()]
-    param()
-    $requestResult = [string]::Empty
-    try {
-        $irmSplat = @{
-            Uri             = 'https://ipinfo.io/json'
-            Method          = [Microsoft.PowerShell.Commands.WebRequestMethod]::Get
-            UseBasicParsing = $true
-        }
-        $requestResult = Invoke-RestMethod @irmSplat -ea SilentlyContinue
+    param(
+        [Parameter(
+            Mandatory = $false,
+            HelpMessage = 'Force refresh of the cached IP information. Default is false.'
+        )]
+        [bool]$ForceRefresh = $false
+    )
+
+    [int]$CacheTtlSeconds = 600
+
+    $invokeRestMethodParams = @{
+        Uri         = 'https://ipinfo.io/json'
+        Method      = [Microsoft.PowerShell.Commands.WebRequestMethod]::Get
+        ErrorAction = [System.Management.Automation.ActionPreference]::Stop
+        TimeoutSec  = 5
     }
-    catch {
-        $requestResult = "Error happened when retrieving IP address"
+
+    $now = Get-Date
+    $cache = $script:psmcp_ipinfo_cache
+
+    if (-not $ForceRefresh -and $cache -and $cache.expiresAt -is [datetime] -and $now -lt $cache.expiresAt) {
+        return $cache.data
     }
-    $result = $requestResult | Out-String
-    return $result
+
+    $responseObject = Invoke-RestMethod @invokeRestMethodParams
+
+    $script:psmcp_ipinfo_cache = @{
+        expiresAt = (Get-Date).AddSeconds($CacheTtlSeconds)
+        data      = $responseObject
+    }
+
+    return $responseObject
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
-    New-MCPServer -functionInfo (Get-Item Function:get_public_ip -ErrorAction Stop)
+    New-MCPServer -functionInfo (Get-Item Function:get_ipinfo -ErrorAction Stop)
 }
