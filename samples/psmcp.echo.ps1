@@ -45,7 +45,11 @@ function get_echo {
     }
 }
 
-# Skip server initialization when the script is dot-sourced.
+# Info: Prevent server startup when dot-sourced
+# Note: When a script is dot-sourced the dot operator sets `$MyInvocation.InvocationName` to '.'.
+# This check prevents the MCP server from being started when the file is loaded into
+# an interactive/session scope for testing or inspection.
+
 if ($MyInvocation.InvocationName -ne '.') {
     New-MCPServer -functionInfo (Get-Item Function:get_echo -ErrorAction Stop)
 }
