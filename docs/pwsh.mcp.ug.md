@@ -464,6 +464,8 @@ When developing MCP servers, you can enable development mode for MCP servers by 
 **MCP output log**
 When VS Code encounters an issue with an MCP server, it shows an error indicator in the Chat view. Select the error notification in the Chat view, and then select the Show Output option to view the server logs. Alternatively, run MCP: List Servers from the Command Palette, select the server, and then choose Show Output.
 
+Reference: [MCP Output Log](https://code.visualstudio.com/api/extension-guides/ai/mcp#mcp-output-log)
+
 **MCP client Log:**
 
 MCP clients have logging capabilities that can be used for debugging. For example, GitHub Copilot CLI writes session logs to `~/.copilot/session-state/`, which can be helpful for diagnosing issues with your MCP server.

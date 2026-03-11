@@ -38,7 +38,7 @@ Install-Module -Name PSScriptAnalyzer -Force
 ├── src/                         # Source code
 │   ├── server1.ps1              # Example server
 │   └── pwsh.mcp/
-│       ├── pwsh.mcp.psd         # Module manifest
+│       ├── pwsh.mcp.psd1        # Module manifest
 │       ├── pwsh.mcp.psm1        # Module loader
 │       ├── psmcp.core.ps1       # Core MCP implementation
 │       ├── psmcp.helper.ps1     # Helper functions
@@ -75,8 +75,6 @@ Install-Module -Name PSScriptAnalyzer -Force
 
 ## MCP Server Implementation Example
 
-**File:** `samples/psmcp_hello_world.ps1`
-
 This is a simple example of an MCP server implemented in PowerShell. It defines a single function `hello_world` that takes a name as input and returns a greeting message. The server is created using the `New-MCPServer` cmdlet from the `pwsh.mcp` module, which takes the function information as an argument.
 
 ```powershell
@@ -98,7 +96,7 @@ Import-Module pwsh.mcp -Force -ErrorAction Stop
 New-MCPServer -FunctionInfo (Get-Item Function:hello_world)
 ```
 
-Note: Annotations are used to provide metadata for the MCP server, such as the title and read-only hint. Refer to the `Annotations` attribute class defined in`src/pwsh.mcp/classes/AnnotationsAttribute.cs`.
+Note: Annotations are used to provide metadata for the MCP server, such as the title, read-only hint, destructive hint, and idempotent hint. Refer to the `Annotations` attribute class defined in `src/pwsh.mcp/classes/AnnotationsAttribute.cs`.
 
 ## VS Code MCP Server Configuration
 
@@ -140,7 +138,7 @@ Check the actual configuration in [.vscode/mcp.json](../.vscode/mcp.json).
 Edit source files in `src/pwsh.mcp/`:
 
 - `psmcp.core.ps1` - Core MCP protocol implementation
-- `psmcp.helper.ps1` - Schema generation and utilities
+- `psmcp.helper.ps1` - Utilities
 - `psmcp.logger.ps1` - Logging functionality
 
 ### 2. Run Tests
@@ -182,7 +180,7 @@ CI stores coverage and test results in [coverage/TestCoverage.xml](../coverage/T
 The project includes pre-configured [tasks](../.vscode/tasks.json) for
 Visual Studio Code.
 
-Open the Command Palette: `Cmd+Shift+P` → `Tasks: Run Task` → Select `CI: Unit Tests`
+Open the Command Palette with `Cmd+Shift+P` → `Tasks: Run Task` → Select `CI: Unit Tests`
 to run the unit tests.
 
 **Test Conventions:**
@@ -203,7 +201,7 @@ To check the project codebase with configured rules:
 Invoke-ScriptAnalyzer -Path ./src -Settings ./config.analyzer.psd1 -Recurse
 ```
 
-To check a specific file with default rules:
+To check a specific file with defined settings:
 
 ```powershell
 Invoke-ScriptAnalyzer -Path ./src/pwsh.mcp/psmcp.core.ps1 -Settings ./config.analyzer.psd1
@@ -212,7 +210,7 @@ Invoke-ScriptAnalyzer -Path ./src/pwsh.mcp/psmcp.core.ps1 -Settings ./config.ana
 The project includes pre-configured [tasks](../.vscode/tasks.json) for
 Visual Studio Code.
 
-Open the Command Palette: Press `Cmd+Shift+P` → `Tasks: Run Task` → `CI: Code Analysis` to run the code analysis.
+Open the Command Palette with `Cmd+Shift+P` → `Tasks: Run Task` → `CI: Code Analysis` to run the code analysis.
 
 ### Code Style Guidelines
 
@@ -256,8 +254,8 @@ Workflow: [.github/workflows/ci.yml](../.github/workflows/ci.yml)
 
 Triggers:
 
-- Push to `main` branch
-- Pull requests
+- Push to `main` and `dev` branches (filtered by source/test/config paths)
+- Pull requests to `main` (filtered by source/test/config paths)
 - Manual workflow dispatch
 
 Actions: `PowerShell CI` runs the following jobs:
@@ -290,7 +288,7 @@ Run the same checks as CI locally:
 **Module implements stdio-based communication:**
 
 - Read `JSON-RPC` requests from stdin
-- Writes `JSON-RPC` responses to stdout
+- Write `JSON-RPC` responses to stdout
 
 #### JSON-RPC 2.0
 
@@ -309,7 +307,6 @@ Operations implemented:
 - `initialize` - Server capabilities negotiation
 - `tools/list` - Tool discovery
 - `tools/call` - Tool execution
-- `shutdown` - Graceful shutdown
 
 ### Request Flow
 
@@ -336,7 +333,7 @@ Tool descriptors are generated automatically from PowerShell function metadata �
 4. Map PowerShell types to JSON Schema types: `string`, `integer`, `number`, `boolean`
 5. Read `[Parameter(HelpMessage = "...")]` → property `description`
 6. Read `[Parameter(Mandatory = $true)]` → add to `required` array
-7. Read `[AnnotationsAttribute]` → populate `annotations` block (`title`, `readOnlyHint`, `openWorldHint`)
+7. Read `[AnnotationsAttribute]` → populate `annotations` block (`title`, `readOnlyHint`, `openWorldHint`, `destructiveHint`, `idempotentHint`)
 8. Assemble final tool definition with `name`, `description`, `inputSchema`, and optional `annotations`
 
 ## Development Environment
@@ -358,8 +355,7 @@ The top-level [Makefile](../Makefile) is the primary shortcut layer for all CI a
 
 **Utility targets** — housekeeping:
 
-- `make clean` — remove generated coverage and log files
-- `make clean-jarvis` — run full Jarvis clean action
+- `make clean` — remove generated coverage and log files (delegates to `jarvis.ps1 -action clean`)
 - `make mc-inspector` — launch MCP Inspector via `npx` against `src/server1.ps1`
 
 ### VS Code Workspace Settings
