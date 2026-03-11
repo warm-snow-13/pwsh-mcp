@@ -83,6 +83,10 @@ The function `New-MCPServer` starts the MCP server and registers `get_greeting` 
 When a parameter has a `mandatory=true` attribute, it will be automatically exposed in the tool's schema as a **required** parameter.
 The '.Synopsis' comment-based help section is used as the tool description in the generated schema.
 
+### Return values
+
+Tool functions may return complex PowerShell values such as `[PSCustomObject]`, `[hashtable]`, or JSON strings.  Internally, the module normalizes the tool result and ultimately sends it as text content in the MCP response.
+
 > [!IMPORTANT]
 > MCP servers use **stdio** transport. Avoid any **non-protocol output** to stdout/stderr (for example, `Write-Host`, `Write-Verbose`, `Write-Debug`, `Write-Information`, or external tools that print), because it can corrupt the JSON-RPC stream.
 
