@@ -255,6 +255,7 @@ The function `Add-MCPServer` generates a VS Code MCP installation URL of the for
 
 - [Use MCP servers in VS Code](https://code.visualstudio.com/docs/copilot/customization/mcp-servers)
 - [MCP developer guide](https://code.visualstudio.com/api/extension-guides/ai/mcp)
+- [MCP configuration reference](https://code.visualstudio.com/docs/copilot/reference/mcp-configuration)
 
 ### GitHub Copilot CLI
 
