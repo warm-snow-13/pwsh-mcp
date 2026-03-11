@@ -617,7 +617,7 @@ function New-MCPServer {
         $functionInfo
     )
 
-    # JSON-RPC messages MUST be UTF-8 encoded.
+    # JSON-RPC requirement: messages MUST be UTF-8 encoded.
     [Console]::OutputEncoding = [Console]::InputEncoding = [System.Text.Encoding]::UTF8
 
     mcp.settings.initialize
