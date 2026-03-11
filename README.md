@@ -3,9 +3,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PowerShell Version](https://img.shields.io/badge/PowerShell-7.5-blue.svg)](https://github.com/PowerShell/PowerShell)
 [![build](https://github.com/warm-snow-13/pwsh-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/warm-snow-13/pwsh-mcp/actions/workflows/ci.yml)
-[![PowerShell Gallery version](https://img.shields.io/powershellgallery/v/pwsh.mcp)](https://www.powershellgallery.com/packages/pwsh.mcp)
-[![PowerShell Gallery downloads](https://img.shields.io/powershellgallery/dt/pwsh.mcp)](https://www.powershellgallery.com/packages/pwsh.mcp)
-[![Maintenance](https://img.shields.io/maintenance/yes/2026.svg)](https://github.com/warm-snow-13/pwsh-mcp)
+[![PowerShell Gallery version](https://img.shields.io/powershellgallery/v/pwsh.mcp?label=PowerShell%20Gallery)](https://www.powershellgallery.com/packages/pwsh.mcp)
+[![PowerShell Gallery downloads](https://img.shields.io/powershellgallery/dt/pwsh.mcp?label=Downloads)](https://www.powershellgallery.com/packages/pwsh.mcp)
+[![Maintenance](https://img.shields.io/maintenance/yes/2026.svg?label=Maintenance)](https://github.com/warm-snow-13/pwsh-mcp)
 
 ![psmcp](./docs/assets/psmcp_2025.png)
 
@@ -176,6 +176,8 @@ Example `.vscode/mcp.json` configuration for the above script:
   }
 }
 ```
+
+The file path can be either absolute or relative to the workspace folder.
 
 Refer to the [user guide](./docs/pwsh.mcp.ug.md) for additional examples and advanced configuration.
 
