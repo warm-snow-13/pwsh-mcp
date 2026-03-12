@@ -222,9 +222,7 @@ function mcp.InputSchema.getSchema {
 
             $inputSchema.properties[$parameter.Name] = $paramSchema
 
-            $paramAttr = $parameter.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] })
-
-            if ($paramAttr -and $paramAttr.Mandatory) {
+            if ($parameter.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory) {
                 $inputSchema.required += $parameter.Name
             }
         }
@@ -241,13 +239,7 @@ function mcp.InputSchema.getSchema {
 
         $annotations = $functionInfoItem.ScriptBlock.Attributes.Where({ $_ -is [AnnotationsAttribute] })
         if ($annotations) {
-            $schema[$functionInfoItem.Name]['annotations'] = [ordered]@{
-                title           = $annotations.Title
-                readOnlyHint    = $annotations.ReadOnlyHint
-                destructiveHint = $annotations.DestructiveHint
-                idempotentHint  = $annotations.IdempotentHint
-                openWorldHint   = $annotations.OpenWorldHint
-            }
+            $schema[$functionInfoItem.Name]['annotations'] = $annotations
             $schema[$functionInfoItem.Name]['title'] = $annotations.Title
         }
     }
