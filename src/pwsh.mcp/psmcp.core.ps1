@@ -178,6 +178,7 @@ function mcp.InputSchema.getSchema {
             - DateTime/DateTimeOffset: type=string + format=date-time
             - Hashtable/object-like: type=object + additionalProperties=true
     #>
+    [Alias("Get-McpInputSchema")]
     [OutputType([System.Collections.Specialized.OrderedDictionary[]])]
     [CmdletBinding()]
     param (
@@ -185,7 +186,6 @@ function mcp.InputSchema.getSchema {
             Mandatory = $true,
             HelpMessage = "Array of FunctionInfo objects to be used by the MCP server."
         )]
-        [Alias("Get-McpInputSchema")]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.FunctionInfo[]]
         $functionInfo
@@ -214,10 +214,9 @@ function mcp.InputSchema.getSchema {
                 $paramSchema[$key] = $typeSchema[$key]
             }
 
-            $paramHelp = $null
+            $paramHelp = [string]::Empty
             if ($parameter.Attributes) {
-                $paramHelp = $parameter.Attributes.where({ $_.HelpMessage }).HelpMessage
-                $paramHelp = $paramHelp ?? [string]::Empty
+                $paramHelp = ($parameter.Attributes.Where({ $_.HelpMessage }).HelpMessage) ?? [string]::Empty
             }
             $paramSchema['description'] = $paramHelp
 
@@ -243,9 +242,11 @@ function mcp.InputSchema.getSchema {
         $annotations = $functionInfoItem.ScriptBlock.Attributes.Where({ $_ -is [AnnotationsAttribute] })
         if ($annotations) {
             $schema[$functionInfoItem.Name]['annotations'] = [ordered]@{
-                title         = $annotations.Title
-                readOnlyHint  = $annotations.ReadOnlyHint
-                openWorldHint = $annotations.OpenWorldHint
+                title           = $annotations.Title
+                readOnlyHint    = $annotations.ReadOnlyHint
+                destructiveHint = $annotations.DestructiveHint
+                idempotentHint  = $annotations.IdempotentHint
+                openWorldHint   = $annotations.OpenWorldHint
             }
             $schema[$functionInfoItem.Name]['title'] = $annotations.Title
         }
