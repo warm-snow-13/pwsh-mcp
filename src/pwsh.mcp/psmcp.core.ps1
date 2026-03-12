@@ -26,6 +26,14 @@ if (-not ('AnnotationsAttribute' -as [type])) {
     Add-Type -Path $PSScriptRoot/classes/AnnotationsAttribute.cs
 }
 
+enum McpErrorCode {
+    ParseError = -32700
+    InvalidRequest = -32600
+    MethodNotFound = -32601
+    InvalidParams = -32602
+    InternalError = -32603
+}
+
 function mcp.getCmdHelpInfo {
     [Alias("Get-McpCommandHelpInfo")]
     [outputType([string])]
@@ -434,7 +442,7 @@ function mcp.requestHandler {
                 jsonrpc = "2.0"
                 id      = $request.id
                 error   = [ordered]@{
-                    code    = -32601
+                    code    = [int][McpErrorCode]::MethodNotFound
                     message = "Request method not found"
                     data    = "The method '$($request.method)' does not exist or is not available."
                 }
