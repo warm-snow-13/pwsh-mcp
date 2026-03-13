@@ -26,6 +26,14 @@ if (-not ('AnnotationsAttribute' -as [type])) {
     Add-Type -Path $PSScriptRoot/classes/AnnotationsAttribute.cs
 }
 
+enum McpErrorCode {
+    ParseError = -32700
+    InvalidRequest = -32600
+    MethodNotFound = -32601
+    InvalidParams = -32602
+    InternalError = -32603
+}
+
 function mcp.getCmdHelpInfo {
     [Alias("Get-McpCommandHelpInfo")]
     [outputType([string])]
@@ -130,17 +138,21 @@ function mcp.InputSchema.getTypeSchema {
         { $_ -in [bool], [System.Boolean] } { 'boolean' }
         { $_ -eq [switch] } { 'boolean' }
         { $_ -in [datetime], [System.DateTime], [System.DateTimeOffset] } {
+            # Date/time types: return schema immediately
             return [ordered]@{
                 type   = 'string'
                 format = 'date-time'
             }
         }
-        default { 'string' }
+        default {
+            # Treat unknown types as string
+            'string'
+        }
     }
 
     if ($parameterType -in [object], [hashtable], [PSCustomObject]) {
         return [ordered]@{
-            type                 = 'object';
+            type                 = 'object'
             additionalProperties = $true
         }
     }
@@ -170,6 +182,7 @@ function mcp.InputSchema.getSchema {
             - DateTime/DateTimeOffset: type=string + format=date-time
             - Hashtable/object-like: type=object + additionalProperties=true
     #>
+    [Alias("Get-McpInputSchema")]
     [OutputType([System.Collections.Specialized.OrderedDictionary[]])]
     [CmdletBinding()]
     param (
@@ -177,7 +190,6 @@ function mcp.InputSchema.getSchema {
             Mandatory = $true,
             HelpMessage = "Array of FunctionInfo objects to be used by the MCP server."
         )]
-        [Alias("Get-McpInputSchema")]
         [ValidateNotNullOrEmpty()]
         [System.Management.Automation.FunctionInfo[]]
         $functionInfo
@@ -196,28 +208,17 @@ function mcp.InputSchema.getSchema {
         }
 
         foreach ($parameter in $Parameters) {
+            $paramSchema = [ordered]@{}
 
             $typeSchema = mcp.InputSchema.getTypeSchema -parameterType $parameter.ParameterType
+            $typeSchema.GetEnumerator().ForEach({ $paramSchema[$_.Key] = $_.Value })
 
-            $paramSchema = [ordered]@{
-                type = $typeSchema.type
-            }
-            foreach ($key in $typeSchema.Keys) {
-                $paramSchema[$key] = $typeSchema[$key]
-            }
-
-            $paramHelp = $null
-            if ($parameter.Attributes) {
-                $paramHelp = $parameter.Attributes.where({ $_.HelpMessage }).HelpMessage
-                $paramHelp = $paramHelp ?? [string]::Empty
-            }
+            $paramHelp = ($parameter.Attributes.Where({ $_.HelpMessage }).HelpMessage) ?? [string]::Empty
             $paramSchema['description'] = $paramHelp
 
             $inputSchema.properties[$parameter.Name] = $paramSchema
 
-            $paramAttr = $parameter.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] })
-
-            if ($paramAttr -and $paramAttr.Mandatory) {
+            if ($parameter.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory) {
                 $inputSchema.required += $parameter.Name
             }
         }
@@ -235,11 +236,15 @@ function mcp.InputSchema.getSchema {
         $annotations = $functionInfoItem.ScriptBlock.Attributes.Where({ $_ -is [AnnotationsAttribute] })
         if ($annotations) {
             $schema[$functionInfoItem.Name]['annotations'] = [ordered]@{
-                title         = $annotations.Title
-                readOnlyHint  = $annotations.ReadOnlyHint
-                openWorldHint = $annotations.OpenWorldHint
+                title           = $annotations.Title
+                readOnlyHint    = $annotations.ReadOnlyHint
+                destructiveHint = $annotations.DestructiveHint
+                idempotentHint  = $annotations.IdempotentHint
+                openWorldHint   = $annotations.OpenWorldHint
             }
-            $schema[$functionInfoItem.Name]['title'] = $annotations.Title
+            if ($annotations.Title) {
+                $schema[$functionInfoItem.Name]['title'] = $annotations.Title
+            }
         }
     }
 
@@ -434,7 +439,7 @@ function mcp.requestHandler {
                 jsonrpc = "2.0"
                 id      = $request.id
                 error   = [ordered]@{
-                    code    = -32601
+                    code    = [int][McpErrorCode]::MethodNotFound
                     message = "Request method not found"
                     data    = "The method '$($request.method)' does not exist or is not available."
                 }
