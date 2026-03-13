@@ -138,17 +138,21 @@ function mcp.InputSchema.getTypeSchema {
         { $_ -in [bool], [System.Boolean] } { 'boolean' }
         { $_ -eq [switch] } { 'boolean' }
         { $_ -in [datetime], [System.DateTime], [System.DateTimeOffset] } {
+            # Date/time types: return schema immediately
             return [ordered]@{
                 type   = 'string'
                 format = 'date-time'
             }
         }
-        default { 'string' }
+        default {
+            # Treat unknown types as string
+            'string'
+        }
     }
 
     if ($parameterType -in [object], [hashtable], [PSCustomObject]) {
         return [ordered]@{
-            type                 = 'object';
+            type                 = 'object'
             additionalProperties = $true
         }
     }
@@ -239,8 +243,16 @@ function mcp.InputSchema.getSchema {
 
         $annotations = $functionInfoItem.ScriptBlock.Attributes.Where({ $_ -is [AnnotationsAttribute] })
         if ($annotations) {
-            $schema[$functionInfoItem.Name]['annotations'] = $annotations
-            $schema[$functionInfoItem.Name]['title'] = $annotations.Title
+            $schema[$functionInfoItem.Name]['annotations'] = [ordered]@{
+                title           = $annotations.Title
+                readOnlyHint    = $annotations.ReadOnlyHint
+                destructiveHint = $annotations.DestructiveHint
+                idempotentHint  = $annotations.IdempotentHint
+                openWorldHint   = $annotations.OpenWorldHint
+            }
+            if ($annotations.Title) {
+                $schema[$functionInfoItem.Name]['title'] = $annotations.Title
+            }
         }
     }
 
