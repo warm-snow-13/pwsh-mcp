@@ -208,20 +208,12 @@ function mcp.InputSchema.getSchema {
         }
 
         foreach ($parameter in $Parameters) {
+            $paramSchema = [ordered]@{}
 
             $typeSchema = mcp.InputSchema.getTypeSchema -parameterType $parameter.ParameterType
+            $typeSchema.GetEnumerator().ForEach({ $paramSchema[$_.Key] = $_.Value })
 
-            $paramSchema = [ordered]@{
-                type = $typeSchema.type
-            }
-            foreach ($key in $typeSchema.Keys) {
-                $paramSchema[$key] = $typeSchema[$key]
-            }
-
-            $paramHelp = [string]::Empty
-            if ($parameter.Attributes) {
-                $paramHelp = ($parameter.Attributes.Where({ $_.HelpMessage }).HelpMessage) ?? [string]::Empty
-            }
+            $paramHelp = ($parameter.Attributes.Where({ $_.HelpMessage }).HelpMessage) ?? [string]::Empty
             $paramSchema['description'] = $paramHelp
 
             $inputSchema.properties[$parameter.Name] = $paramSchema
