@@ -76,7 +76,7 @@ function abc {
         result   = $true
     }
 
-    return (ConvertTo-Json -InputObject $payload -Depth 3)
+    return (ConvertTo-Json -InputObject $payload -Compress)
 }
 
 function cde {
@@ -130,7 +130,7 @@ function cde {
         timestamp  = [DateTime]::UtcNow.ToString('o')
     }
 
-    return (ConvertTo-Json -InputObject $result -Depth 3)
+    return (ConvertTo-Json -InputObject $result -Compress)
 }
 
 function q11 {
@@ -138,7 +138,7 @@ function q11 {
         message = "This is a test of the q11 function."
         time    = (Get-Date).ToString('o')
     }
-    return (ConvertTo-Json -InputObject $result -Depth 3)
+    return (ConvertTo-Json -InputObject $result -Compress)
 }
 
 $env:PWSH_MCP_SERVER_LOG_FILE_PATH = [System.IO.Path]::ChangeExtension(
