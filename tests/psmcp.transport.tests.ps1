@@ -1,4 +1,3 @@
-
 <#
 .SYNOPSIS
     Tests for PSMCP stdio integration and basic MCP protocol behavior.
@@ -17,6 +16,9 @@ BeforeAll {
     # The parameter -ErrorAction Stop causes the test run to fail fast if the module cannot be loaded.
     $modulePath = Join-Path -Path $PSScriptRoot -ChildPath '../src/pwsh.mcp/pwsh.mcp.psm1'
     Import-Module $modulePath -Force -ErrorAction Stop
+
+    # Depth for ConvertFrom-Json in tests
+    Set-Variable -Name Depth -Value 12 -Option ReadOnly
 }
 
 Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
@@ -44,7 +46,7 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
 
             $outputLines.Count | Should -Be 1
 
-            $response = $outputLines[0] | ConvertFrom-Json -Depth 10
+            $response = $outputLines[0] | ConvertFrom-Json -Depth $Depth
             $response.jsonrpc | Should -Be '2.0'
             $response.id | Should -Be 1
             $response.result.protocolVersion | Should -Be '2025-06-18'
@@ -141,7 +143,7 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
 
             $outputLines.Count | Should -Be 1
 
-            $response = $outputLines[0] | ConvertFrom-Json -Depth 10
+            $response = $outputLines[0] | ConvertFrom-Json -Depth $Depth
             $response.id | Should -Be 1
             # should be not null or empty
             $response.result.protocolVersion | Should -Not -BeNullOrEmpty
@@ -169,7 +171,7 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
 
             $outputLines.Count | Should -Be 1
 
-            $response = $outputLines[0] | ConvertFrom-Json -Depth 10
+            $response = $outputLines[0] | ConvertFrom-Json -Depth $Depth
             $response.jsonrpc | Should -Be '2.0'
             $response.id | Should -Be 1
             $response.error.code | Should -Be -32601
@@ -195,7 +197,7 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
             mcp.core.stdio.main -tools $tools -In $reader -Out $writer
 
             $output = $writer.ToString().TrimEnd()
-            $response = $output | ConvertFrom-Json -Depth 10
+            $response = $output | ConvertFrom-Json -Depth $Depth
 
             $response.id | Should -Be 1
             $response.result.tools.Count | Should -Be 1
@@ -229,7 +231,7 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
             mcp.core.stdio.main -tools $tools -In $reader -Out $writer
 
             $output = $writer.ToString().TrimEnd()
-            $response = $output | ConvertFrom-Json -Depth 10
+            $response = $output | ConvertFrom-Json -Depth $Depth
 
             $response.id | Should -Be 1
             $response.result.isError | Should -BeFalse
@@ -255,7 +257,7 @@ Describe 'PSMCP stdio integration' -Tag 'StdIo', 'MCPProtocol' {
             mcp.core.stdio.main -tools $tools -In $reader -Out $writer
 
             $output = $writer.ToString().TrimEnd()
-            $response = $output | ConvertFrom-Json -Depth 10
+            $response = $output | ConvertFrom-Json -Depth $Depth
 
             $response.id | Should -Be 1
             # Spec: ping MUST return empty result object
