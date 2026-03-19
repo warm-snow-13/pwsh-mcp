@@ -137,7 +137,7 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
                     name = 'dummy'
                 }
             )
-            Write-Verbose "Tools for testing: $($tools | ConvertTo-Json -Depth 1)"
+            Write-Verbose "Tools for testing: $($tools | ConvertTo-Json -Compress -Depth 5)"
         }
 
         It 'Should handle ping request' {
@@ -162,7 +162,7 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
                     name = 'dummy'
                 }
             )
-            Write-Verbose "Tools for testing: $($tools | ConvertTo-Json -Depth 1)"
+            Write-Verbose "Tools for testing: $($tools | ConvertTo-Json -Compress -Depth 5)"
         }
 
         It 'Should handle initialize request' {
@@ -219,7 +219,7 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
 
             $functionInfo = Get-Command -Name Test-ToolFunction
             $tools = mcp.InputSchema.getSchema -functionInfo $functionInfo
-            Write-Verbose "Tools for testing: $($tools | ConvertTo-Json -Depth 1)"
+            Write-Verbose "Tools for testing: $($tools | ConvertTo-Json -Compress -Depth 5)"
         }
 
         It 'Should handle tools/list request' {
@@ -251,7 +251,7 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
 
             $functionInfo = Get-Command -Name Test-ExecuteFunction
             $tools = mcp.InputSchema.getSchema -functionInfo $functionInfo
-            Write-Verbose "Tools for testing: $($tools | ConvertTo-Json -Depth 1)"
+            Write-Verbose "Tools for testing: $($tools | ConvertTo-Json -Compress -Depth 5)"
         }
 
         It 'Should execute tool and return result' {
@@ -411,7 +411,7 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
                     name = 'dummy'
                 }
             )
-            Write-Verbose "Tools for testing: $($tools | ConvertTo-Json -Depth 1)"
+            Write-Verbose "Tools for testing: $($tools | ConvertTo-Json -Compress -Depth 5)"
         }
 
         It 'Should return null for notification methods' {
@@ -432,7 +432,7 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
                     name = 'dummy'
                 }
             )
-            Write-Verbose "Tools for testing: $($tools | ConvertTo-Json -Depth 1)"
+            Write-Verbose "Tools for testing: $($tools | ConvertTo-Json -Compress -Depth 5)"
         }
 
         It 'Should return error for unknown method' {
