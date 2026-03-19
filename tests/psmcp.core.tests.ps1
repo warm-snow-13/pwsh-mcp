@@ -10,9 +10,6 @@
 BeforeAll {
     $script:modulePath = Join-Path -Path $PSScriptRoot -ChildPath '../src/pwsh.mcp/pwsh.mcp.psm1'
     Import-Module $script:modulePath -Force -ErrorAction Stop
-
-    # Dummy tools for request handler tests
-    $script:dummyTools = @([ordered]@{ name = 'dummy' })
 }
 
 Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
