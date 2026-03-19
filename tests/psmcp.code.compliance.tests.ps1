@@ -1,8 +1,17 @@
-# PowerShell script to validate module files
+<#
+.SYNOPSIS
+    Validate module files for: existence, loadability and syntax.
+
+.DESCRIPTION
+
+    - Ensures module files exist and can be imported.
+    - Validates PowerShell syntax for *.ps1, *.psm1 and *.psd1 files.
+
+#>
 
 BeforeAll {
 
-    Set-Variable -Name moduleName -Value 'pwsh.mcp' -Scope Script -ErrorAction SilentlyContinue
+    Set-Variable -Name moduleName -Value 'pwsh.mcp' -Scope Script -Option ReadOnly
 
     $moduleRoot = Join-Path -Path (Get-Location) -ChildPath "src\$moduleName"
     $modulePath = Join-Path -Path $moduleRoot -ChildPath "$moduleName.psm1"
@@ -41,7 +50,7 @@ Describe "pwsh.mcp Module - Code Quality and Compliance" -Tag 'CodeCompliance' {
 
 Describe "pwsh.mcp Project - PowerShell Syntax Validation" -Tag 'CodeCompliance' {
 
-    $scripts = Get-ChildItem $moduleRoot -Include *.ps1, *.psm1, *.psd1 -Recurse
+    $scripts = Get-ChildItem $moduleRoot -Include *.ps1, *.psm1, *.psd1 -Recurse -File
 
     $testCase = $scripts | ForEach-Object { @{file = $_ } }
 
@@ -50,7 +59,7 @@ Describe "pwsh.mcp Project - PowerShell Syntax Validation" -Tag 'CodeCompliance'
 
         $file.fullname | Should -Exist
 
-        $contents = Get-Content -Path $file.fullname -ErrorAction Stop
+        $contents = Get-Content -Path $file.fullname -Raw -ErrorAction Stop
         $errors = $null
         $null = [System.Management.Automation.PSParser]::Tokenize(
             $contents,
