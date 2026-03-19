@@ -183,7 +183,7 @@ Describe 'import dot source' -Tag 'dev' {
 
         $params = @{ text = "TestName" }
         $jsonResult = & abc  @params
-        $resultObj = $jsonResult | ConvertFrom-Json
+        $resultObj = $jsonResult | ConvertFrom-Json -ErrorAction Stop
 
         $resultObj.function | Should -Be 'abc'
         $resultObj.input.text | Should -Be 'TestName'
