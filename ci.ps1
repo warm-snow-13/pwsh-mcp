@@ -107,8 +107,8 @@ try {
     Write-Progress -Activity "INIT" -Status "INIT"
 
     Start-Transcript -Force -UseMinimalHeader -Path (
-        [io.path]::ChangeExtension(
-            $MyInvocation.MyCommand.path,
+        [System.IO.Path]::ChangeExtension(
+            $MyInvocation.MyCommand.Path,
             ".log"
         )
     ) -ErrorAction silentlyContinue -Verbose

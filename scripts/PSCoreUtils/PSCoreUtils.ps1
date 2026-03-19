@@ -88,13 +88,15 @@ function utils.format.analysis_result {
         $result.where({ $_.Severity -eq 'Error' }).Count
 
     #>
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '')]
     [CmdletBinding()]
     param(
         [System.Object[]]
         $data
     )
-
+    if ($data.Count -eq 0) {
+        return
+    }
     Write-Host 'STATIC ANALYSIS RESULTS DETAILS' -ForegroundColor Blue
     $data
     | Select-Object -Property *
