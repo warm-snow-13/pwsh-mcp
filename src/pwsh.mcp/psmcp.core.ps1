@@ -35,8 +35,18 @@ enum McpErrorCode {
 }
 
 function mcp.getCmdHelpInfo {
+    <#
+    .SYNOPSIS
+        Extract command help information from a FunctionInfo object.
+
+    .NOTES
+        The are multiple ways to provide help information for PowerShell functions:
+        - $helpContent = Get-Help -Name $functionInfo.Name -ErrorAction Stop
+        - $helpContent = $functionInfo.ScriptBlock?.Ast?.GetHelpContent()
+
+    #>
     [Alias("Get-McpCommandHelpInfo")]
-    [outputType([string])]
+    [OutputType([string])]
     [CmdletBinding()]
     param(
         [parameter(
@@ -51,31 +61,36 @@ function mcp.getCmdHelpInfo {
     )
 
     $fallbackSynopsis = $functionInfo.Name
-    $result = [string]::Empty
+    $helpContent = $null
 
     try {
-        $funcName = $functionInfo.Name
-        $commandHelpInfo = Get-Help -Name $funcName -ErrorAction SilentlyContinue
-        $result = $commandHelpInfo.Synopsis ?? $fallbackSynopsis
-
-        if ($extended) {
-            $result = [string]::Join(
-                [Environment]::NewLine,
-                (
-                    $commandHelpInfo.PSObject.Properties
-                    | Where-Object { $_.Name -in 'Synopsis', 'Component', 'Role', 'Functionality' }
-                    | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Value) }
-                    | ForEach-Object { [string]::Concat($_.Name, ': ', ([string]$_.Value).Trim()) }
-                )
-            );
-        }
-
+        $helpContent = $functionInfo.ScriptBlock?.Ast?.GetHelpContent()
     }
     catch {
-        $result = $fallbackSynopsis
+        $helpContent = $null
     }
 
-    return ($result.Trim())
+    if (-not $helpContent) {
+        return $fallbackSynopsis
+    }
+
+    if (-not $extended) {
+        $synopsis = $helpContent.Synopsis?.ToString().Trim()
+        return $synopsis ?? $fallbackSynopsis
+    }
+
+    $extendedParts = $helpContent.PSObject.Properties
+    | Where-Object { $_.Name -in 'Synopsis', 'Component', 'Role', 'Functionality' }
+    | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Value) }
+    | ForEach-Object { [string]::Concat($_.Name, ': ', ([string]$_.Value).Trim()) }
+
+
+    if ($extendedParts) {
+        return [string]::Join([Environment]::NewLine, $extendedParts)
+    }
+
+    $result = $helpContent.Synopsis ?? $fallbackSynopsis
+    return $result.ToString().Trim()
 }
 
 function mcp.InputSchema.getParams {
@@ -297,10 +312,6 @@ function mcp.callTool {
         [System.Collections.Specialized.OrderedDictionary[]]
         $tools
     )
-
-    $isError = $false
-    $executionResult = [string]::Empty
-
     try {
 
         $toolName = $request.params?.name
@@ -314,21 +325,20 @@ function mcp.callTool {
             )
         }
 
-        $executionResult = & $toolName @toolArgs
+        $result = & $toolName @toolArgs
 
-        if ($executionResult -isnot [string]) {
-            $executionResult = (ConvertTo-Json -InputObject $executionResult -Compress)
+        $result = ($result -is [string]) ? $result : (ConvertTo-Json $result -Compress)
+
+        return [PSCustomObject][ordered]@{
+            text    = $result
+            isError = $false
         }
-
     }
     catch {
-        $isError = $true
-        $executionResult = $_.Exception.Message
-    }
-
-    return [PSCustomObject][ordered]@{
-        text    = $executionResult
-        isError = $isError
+        return [PSCustomObject][ordered]@{
+            text    = $_.Exception.Message
+            isError = $true
+        }
     }
 }
 

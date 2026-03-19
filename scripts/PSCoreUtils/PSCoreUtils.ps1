@@ -12,7 +12,7 @@ function utils.format.tests_result {
 
         $result.getType().fullname -eq 'Pester.Run'
     #>
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '')]
     [CmdletBinding()]
     param(
         $data
@@ -88,13 +88,15 @@ function utils.format.analysis_result {
         $result.where({ $_.Severity -eq 'Error' }).Count
 
     #>
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '')]
     [CmdletBinding()]
     param(
         [System.Object[]]
         $data
     )
-
+    if ($data.Count -eq 0) {
+        return
+    }
     Write-Host 'STATIC ANALYSIS RESULTS DETAILS' -ForegroundColor Blue
     $data
     | Select-Object -Property *
@@ -113,7 +115,7 @@ function utils.format.analysis_result {
 }
 
 function pwsh.get_pwsh_processes {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '')]
     [CmdletBinding()]
     param()
     Write-Verbose -Message ([string]::Format('{0} started.', $MyInvocation.MyCommand.Name))
@@ -260,7 +262,7 @@ function pwsh.set_local_repository {
     # "$HOME/.local/share/powershell/Modules/LocalRepo"
     # "$HOME/Projects/.LocalPSRepository"
     # [IO.DirectoryInfo]::new($context.localRepoPath).FullName
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '')]
     [CmdletBinding()]
     param()
     $Repo = "$home/Projects/.LocalPSRepository"
@@ -441,7 +443,7 @@ function vscode.add_mcp_server {
         https://code.visualstudio.com/api/extension-guides/ai/mcp
 
     #>
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '')]
     [Alias('Add-McpServer')]
     [CmdletBinding()]
     param(
@@ -488,7 +490,6 @@ function vscode.add_mcp_server {
     }
 
 }
-
 
 function utils.get_ai_client_data {
     <#

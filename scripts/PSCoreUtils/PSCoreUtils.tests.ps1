@@ -53,7 +53,13 @@ Describe 'utils.set_version' {
     }
 
     It 'Should throw when part is invalid' {
-        { utils.set_version -Version ([version]'1.2.3') -Part 'Patch' } | Should -Throw
+        $splatParams = @{
+            Version = ([version]'1.2.3')
+            Part    = 'Patch'
+        }
+        $errorId = 'ParameterArgumentValidationError,utils.set_version'
+
+        { utils.set_version @splatParams } | Should -Throw -ErrorId $errorId
     }
 
     It 'Should throw when increment is less than 1' {

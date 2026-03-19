@@ -22,11 +22,7 @@
 #Requires -Modules @{ ModuleName='Pester'; ModuleVersion='5.7.0' }
 #Requires -Modules @{ ModuleName='PSScriptAnalyzer'; ModuleVersion='1.24.0' }
 #
-[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute(
-    'PSAvoidUsingWriteHost',
-    '',
-    Justification = 'Used for CI script output.'
-)]
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '')]
 [CmdletBinding(
     SupportsShouldProcess = $true,
     ConfirmImpact = [System.Management.Automation.ConfirmImpact]::Low,
@@ -102,13 +98,13 @@ Write-Host "FailOnWarnings: $FailOnWarnings" -ForegroundColor Cyan
 
 try {
 
-    Write-Verbose "$((Get-Date).TimeOfDay) [BEGIN  ] Starting $($MyInvocation.MyCommand)"
+    Write-Verbose "$((Get-Date).TimeOfDay) [BEGIN  ] Starting $($MyInvocation.MyCommand.Path) with action: $action"
 
     Write-Progress -Activity "INIT" -Status "INIT"
 
     Start-Transcript -Force -UseMinimalHeader -Path (
-        [io.path]::ChangeExtension(
-            $MyInvocation.MyCommand.path,
+        [System.IO.Path]::ChangeExtension(
+            $MyInvocation.MyCommand.Path,
             ".log"
         )
     ) -ErrorAction silentlyContinue -Verbose
@@ -209,11 +205,15 @@ finally {
 
     Write-Progress -Completed "DONE ..."
 
-    Write-Verbose "[$((Get-Date).TimeOfDay) END    ] Ending $($MyInvocation.MyCommand)"
+    Write-Verbose "[$((Get-Date).TimeOfDay) END    ] Ending $($MyInvocation.MyCommand.Path) with action: $action"
 
-    Write-Information -MessageData (
-        'INFO: Activity Completed in [{0}s].' -f ([int]$context.stopwatch.Elapsed.TotalSeconds)
-    ) -InformationAction continue
+    Write-Host (
+        [string]::Format(
+            "INFO: Total Execution Time: [{0}m {1}s].",
+            [int]$context.Diagnostics_Stopwatch.Elapsed.TotalMinutes,
+            [int]$context.Diagnostics_Stopwatch.Elapsed.TotalSeconds
+        )
+    )
 
     $Context | Select-Object -Property * | Format-List -Force
 
