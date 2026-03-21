@@ -20,7 +20,7 @@
 #Requires -Version 7.4
 #Requires -Modules PSScriptAnalyzer, Pester
 #Requires -Modules @{ ModuleName='Pester'; ModuleVersion='5.7.0' }
-#Requires -Modules @{ ModuleName='PSScriptAnalyzer'; ModuleVersion='1.24.0' }
+#Requires -Modules @{ ModuleName='PSScriptAnalyzer'; ModuleVersion='1.25.0' }
 #
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '')]
 [CmdletBinding(
