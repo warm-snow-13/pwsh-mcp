@@ -12,6 +12,13 @@ if (Test-Path -Path $PublicPath -PathType Container) {
         }
     }
 }
-else {
-    Write-Warning "Public directory not found at path: $PublicPath"
+
+# Set up the OnRemove event handler for the module
+$MyInvocation.MyCommand.ScriptBlock.Module.OnRemove = {
+}
+
+function Get-ModulePrivateData {
+    [CmdletBinding()]
+    param()
+    $MyInvocation.MyCommand.Module.PrivateData
 }
