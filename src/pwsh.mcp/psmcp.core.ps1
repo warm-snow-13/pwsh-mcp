@@ -57,10 +57,13 @@ function mcp.getCmdHelpInfo {
         [System.Management.Automation.FunctionInfo]
         $functionInfo,
 
+        [parameter(
+            HelpMessage = "Whether to return extended help information if available."
+        )]
         [switch]$extended
     )
 
-    $fallbackSynopsis = $functionInfo.Name
+    $fallback = $functionInfo.Name
     $helpContent = $null
 
     try {
@@ -71,12 +74,12 @@ function mcp.getCmdHelpInfo {
     }
 
     if (-not $helpContent) {
-        return $fallbackSynopsis
+        return $fallback
     }
 
     if (-not $extended) {
-        $synopsis = $helpContent.Synopsis?.ToString().Trim()
-        return $synopsis ?? $fallbackSynopsis
+        $synopsis = $helpContent.Synopsis?.ToString().Trim() ?? $fallback
+        return $synopsis
     }
 
     $extendedParts = $helpContent.PSObject.Properties
@@ -89,11 +92,21 @@ function mcp.getCmdHelpInfo {
         return [string]::Join([Environment]::NewLine, $extendedParts)
     }
 
-    $result = $helpContent.Synopsis ?? $fallbackSynopsis
-    return $result.ToString().Trim()
+    $result = $helpContent.Synopsis?.ToString().Trim() ?? $fallback
+    return $result
 }
 
 function mcp.InputSchema.getParams {
+    <#
+    .SYNOPSIS
+        Extract input parameters for a PowerShell function, excluding common and internal parameters.
+
+    .PARAMETER functionInfo
+        FunctionInfo object for processing.
+
+    .OUTPUTS
+        Array of ParameterMetadata objects representing the input parameters.
+    #>
     [Alias("Get-McpInputSchemaParams")]
     [CmdletBinding()]
     param(
@@ -105,12 +118,12 @@ function mcp.InputSchema.getParams {
         $functionInfo
     )
 
-    $attrTypeName = 'System.Management.Automation.Internal.CommonParameters+ValidateVariableName'
+    $attrType = 'System.Management.Automation.Internal.CommonParameters+ValidateVariableName'
 
     $excludeNames = @(
         'OutBuffer'
     )
-    $excludeParamTypes = @(
+    $excludeTypes = @(
         [System.Management.Automation.ActionPreference],
         [System.Management.Automation.ScriptBlock],
         [System.Management.Automation.SwitchParameter]
@@ -119,8 +132,8 @@ function mcp.InputSchema.getParams {
     $Parameters = $functionInfo.Parameters.Values
     | Where-Object {
         ($_.Name -notin $excludeNames) -and
-        ($_.ParameterType -notin $excludeParamTypes) -and
-        -not ($_.Attributes | Where-Object { $_.GetType().FullName -eq $attrTypeName }) -and
+        ($_.ParameterType -notin $excludeTypes) -and
+        -not ($_.Attributes | Where-Object { $_.GetType().FullName -eq $attrType }) -and
         -not ($_.Attributes | Where-Object { $_.DontShow -eq $true })
     }
 
@@ -146,6 +159,7 @@ function mcp.InputSchema.getTypeSchema {
         }
     }
 
+    # Map types to JSON schema types
     $type = switch ($parameterType) {
         { $_ -in [string], [System.String], [char], [System.Char] } { 'string' }
         { $_ -in [byte], [int], [System.Int32], [long], [System.Int64] } { 'integer' }
@@ -159,16 +173,15 @@ function mcp.InputSchema.getTypeSchema {
                 format = 'date-time'
             }
         }
+        { $_ -in [object], [hashtable], [PSCustomObject] } {
+            return [ordered]@{
+                type                 = 'object';
+                additionalProperties = $true
+            }
+        }
         default {
             # Treat unknown types as string
             'string'
-        }
-    }
-
-    if ($parameterType -in [object], [hashtable], [PSCustomObject]) {
-        return [ordered]@{
-            type                 = 'object'
-            additionalProperties = $true
         }
     }
 
@@ -317,8 +330,7 @@ function mcp.callTool {
         $toolName = $request.params?.name
         $toolArgs = $request.params?.arguments ?? @{}
 
-        # Handle errors during tool execution
-        # Security: Ensure tool exists
+        # Security: Ensure tool exists in allowed list
         if (-not($tools.name -contains $toolName)) {
             throw [System.Exception]::new(
                 "Unknown tool: $toolName"
@@ -643,7 +655,7 @@ function New-MCPServer {
         mcp.core.stdio.main -tools $toolList
     }
     else {
-        # Dry run mode - return server status and schema as JSON string
+        # Dry run: return server status and schema as JSON
         return [ordered]@{
             jsonrpc = "2.0"
             method  = "notifications"
@@ -652,7 +664,7 @@ function New-MCPServer {
             }
             psmcp   = @{
                 path    = ($MyInvocation.MyCommand.Module.path)
-                version = ($MyInvocation.MyCommand.Module.Version ?? '0.0.0').ToString()
+                version = ($MyInvocation.MyCommand.Module.Version)?.ToString()
             }
             caller  = Get-PSCallStack | Select-Object -ExpandProperty Command -Skip 1
             schema  = mcp.InputSchema.getSchema -functionInfo $functionInfo
