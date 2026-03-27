@@ -141,10 +141,17 @@ function mcp.InputSchema.getParams {
 }
 
 function mcp.InputSchema.getTypeSchema {
+    <#
+    .SYNOPSIS
+        Returns a JSON Schema fragment for a given .NET type (PowerShell parameter type).
+    .DESCRIPTION
+        Maps .NET/PowerShell types to JSON Schema types for input validation.
+        Handles arrays, primitives, objects, and date/time types.
+    #>
     [OutputType([System.Collections.Specialized.OrderedDictionary])]
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true, HelpMessage = 'The .NET type of the parameter.')]
+        [Parameter(Mandatory, HelpMessage = 'The .NET type of the parameter.')]
         [ValidateNotNull()]
         [System.Type]
         $parameterType
@@ -152,42 +159,38 @@ function mcp.InputSchema.getTypeSchema {
 
     if ($parameterType.IsArray) {
         $elementType = $parameterType.GetElementType() ?? [string]
-        $itemsSchema = mcp.InputSchema.getTypeSchema -parameterType $elementType
         return [ordered]@{
             type  = 'array'
-            items = $itemsSchema
+            items = mcp.InputSchema.getTypeSchema -parameterType $elementType
         }
     }
 
     # Map types to JSON schema types
-    $type = switch ($parameterType) {
-        { $_ -in [string], [System.String], [char], [System.Char] } { 'string' }
-        { $_ -in [byte], [int], [System.Int32], [long], [System.Int64] } { 'integer' }
-        { $_ -in [double], [float], [single], [decimal] } { 'number' }
-        { $_ -in [bool], [System.Boolean] } { 'boolean' }
-        { $_ -eq [switch] } { 'boolean' }
+    switch ($parameterType) {
+        { $_ -in [string], [System.String], [char], [System.Char] } {
+            return [ordered]@{ type = 'string' }
+        }
+        { $_ -in [byte], [int], [System.Int32], [long], [System.Int64] } {
+            return [ordered]@{ type = 'integer' }
+        }
+        { $_ -in [double], [float], [single], [decimal] } {
+            return [ordered]@{ type = 'number' }
+        }
+        { $_ -in [switch], [bool], [System.Boolean] } {
+            return [ordered]@{ type = 'boolean' }
+        }
         { $_ -in [datetime], [System.DateTime], [System.DateTimeOffset] } {
-            # Date/time types: return schema immediately
-            return [ordered]@{
-                type   = 'string'
-                format = 'date-time'
-            }
+            return [ordered]@{ type = 'string'; format = 'date-time' }
         }
         { $_ -in [object], [hashtable], [PSCustomObject] } {
-            return [ordered]@{
-                type                 = 'object';
-                additionalProperties = $true
-            }
+            return [ordered]@{ type = 'object'; additionalProperties = $true }
         }
         default {
             # Treat unknown types as string
-            'string'
+            return [ordered]@{ type = 'string' }
         }
     }
 
-    return [ordered]@{
-        type = $type
-    }
 }
 
 function mcp.InputSchema.getSchema {
@@ -649,10 +652,11 @@ function New-MCPServer {
 
     mcp.settings.initialize
 
+    $schema = mcp.InputSchema.getSchema -functionInfo $functionInfo
+
     if ($PSCmdlet.ShouldProcess("MCP Server", "ensure functions: $($functionInfo.name)")) {
         # Create and start MCP server
-        $toolList = mcp.InputSchema.getSchema -functionInfo $functionInfo
-        mcp.core.stdio.main -tools $toolList
+        mcp.core.stdio.main -tools $schema
     }
     else {
         # Dry run: return server status and schema as JSON
@@ -667,7 +671,7 @@ function New-MCPServer {
                 version = ($MyInvocation.MyCommand.Module.Version)?.ToString()
             }
             caller  = Get-PSCallStack | Select-Object -ExpandProperty Command -Skip 1
-            schema  = mcp.InputSchema.getSchema -functionInfo $functionInfo
+            schema  = $schema
         } | ConvertTo-Json -Compress -Depth 10
     }
 }
