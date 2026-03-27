@@ -620,7 +620,7 @@ function New-MCPServer {
     #>
     [CmdletBinding(
         SupportsShouldProcess = $true,
-        ConfirmImpact = 'low'
+        ConfirmImpact = [System.Management.Automation.ConfirmImpact]::Low
     )]
     param(
         [Parameter(
