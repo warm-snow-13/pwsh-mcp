@@ -27,7 +27,7 @@ function psmcp.writeLog {
     [OutputType([void])]
     [CmdletBinding(
         SupportsShouldProcess,
-        ConfirmImpact = 'Low'
+        ConfirmImpact = [System.Management.Automation.ConfirmImpact]::Low
     )]
     param(
         [Parameter(

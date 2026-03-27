@@ -2,7 +2,7 @@
   "window.title": "● ${rootName} - ${activeEditorShort}",
   "window.autoDetectColorScheme": true,
   "workbench.preferredDarkColorTheme": "Monokai Dimmed",
-  "workbench.preferredLightColorTheme": "Default Light Modern",
+  "workbench.preferredLightColorTheme": "Light Modern",
   "workbench.editor.highlightModifiedTabs": true,
   "workbench.editor.limit.enabled": true,
   "workbench.editor.limit.value": 5,
