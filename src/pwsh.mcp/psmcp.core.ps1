@@ -556,15 +556,11 @@ function mcp.core.stdio.main {
 
             $request = ConvertFrom-Json -InputObject $line -Depth 10 -AsHashtable -ErrorAction Stop
 
-            if ($null -eq $request.jsonrpc -or $request.jsonrpc -ne '2.0') {
-                continue;
-                # skip processing - invalid jsonrpc version
-            }
+            if ($request.jsonrpc -ne '2.0') { continue }
+            # skip processing - invalid jsonrpc version
 
-            if ($null -eq $request.id) {
-                continue
-                # notifications have no id, so no response can be sent
-            }
+            if ($null -eq $request.id) { continue }
+            # notifications have no id, so no response can be sent
 
             if ($request.method -eq 'shutdown') {
                 break;
