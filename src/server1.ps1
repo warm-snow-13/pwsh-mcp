@@ -141,6 +141,26 @@ function q11 {
     return (ConvertTo-Json -InputObject $result -Compress)
 }
 
+function getProcesses {
+    [McpTool(
+        Name = 'get.Processes',
+        Description = 'Return running processes'
+    )]
+    [OutputType('System.Management.Automation.PSCustomObject')]
+    [CmdletBinding()]
+    param()
+    Get-Process
+    | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Name) }
+    | Sort-Object -Property CPU -Descending
+    | Select-Object -First 3 | ForEach-Object {
+        [PSCustomObject]@{
+            Name = $_.Name
+            Id   = $_.Id
+            CPU  = $_.CPU
+        }
+    }
+}
+
 $env:PWSH_MCP_SERVER_LOG_FILE_PATH = [System.IO.Path]::ChangeExtension(
     $MyInvocation.MyCommand.path,
     ".log"
@@ -148,5 +168,12 @@ $env:PWSH_MCP_SERVER_LOG_FILE_PATH = [System.IO.Path]::ChangeExtension(
 
 # Skip server initialization when the script is dot-sourced (e.g. from tests).
 if ($MyInvocation.InvocationName -ne '.') {
-    New-MCPServer -functionInfo (Get-Item Function:abc, Function:cde -ErrorAction Stop)
+
+    # $functionInfo = (Get-Item Function:abc, Function:cde -ErrorAction Stop)
+
+    # Dynamically discover functions with the Mcp.ToolAttribute to include in the server.
+    $functionInfo = Get-Command -CommandType Function
+    | Where-Object { $_.ScriptBlock.Attributes | Where-Object { $_ -is [McpToolAttribute] } }
+
+    New-MCPServer -functionInfo $functionInfo
 }
