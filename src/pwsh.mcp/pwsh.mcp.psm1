@@ -4,11 +4,10 @@ using namespace System.Management.Automation
 
 # Load AnnotationsAttribute class if not already loaded
 $types = @(
-    "$PSScriptRoot/classes/AnnotationsAttribute.cs",
-    "$PSScriptRoot/classes/McpToolAttribute.cs"
+    Get-Item -Path $PSScriptRoot/classes/AnnotationsAttribute.cs
+    Get-Item -Path $PSScriptRoot/classes/McpToolAttribute.cs
 )
-Add-Type -Path $types -ErrorAction SilentlyContinue
-
+Add-Type -Path $types -ErrorAction ([System.Management.Automation.ActionPreference]::SilentlyContinue)
 
 $PublicPath = Join-Path -Path $PSScriptRoot -ChildPath ''
 if (Test-Path -Path $PublicPath -PathType Container) {
@@ -28,6 +27,7 @@ $MyInvocation.MyCommand.ScriptBlock.Module.OnRemove = {
 }
 
 function Get-ModulePrivateData {
+    [OutputType([object])]
     [CmdletBinding()]
     param()
     $MyInvocation.MyCommand.Module.PrivateData
