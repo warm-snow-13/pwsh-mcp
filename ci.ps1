@@ -23,6 +23,7 @@
 #Requires -Modules @{ ModuleName='PSScriptAnalyzer'; ModuleVersion='1.25.0' }
 #
 [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '')]
+[OutputType('System.Management.Automation.PSCustomObject')]
 [CmdletBinding(
     SupportsShouldProcess = $true,
     ConfirmImpact = [System.Management.Automation.ConfirmImpact]::Low,
