@@ -1,5 +1,15 @@
 #Requires -Version 7.4
 
+using namespace System.Management.Automation
+
+# Load AnnotationsAttribute class if not already loaded
+$types = @(
+    "$PSScriptRoot/classes/AnnotationsAttribute.cs",
+    "$PSScriptRoot/classes/McpToolAttribute.cs"
+)
+Add-Type -Path $types -ErrorAction SilentlyContinue
+
+
 $PublicPath = Join-Path -Path $PSScriptRoot -ChildPath ''
 if (Test-Path -Path $PublicPath -PathType Container) {
     $PublicFiles = Get-ChildItem -Path $PublicPath -Filter *.ps1 -File
