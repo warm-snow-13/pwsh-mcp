@@ -21,10 +21,6 @@
 
 #>
 
-# Load AnnotationsAttribute class if not already loaded
-if (-not ('AnnotationsAttribute' -as [type])) {
-    Add-Type -Path $PSScriptRoot/classes/AnnotationsAttribute.cs
-}
 
 enum McpErrorCode {
     ParseError = -32700
@@ -66,6 +62,7 @@ function mcp.getCmdHelpInfo {
     $fallback = $functionInfo.Name
     $helpContent = $null
 
+    # Try to extract help content from AST, fallback to function name
     try {
         $helpContent = $functionInfo.ScriptBlock?.Ast?.GetHelpContent()
     }
@@ -78,10 +75,12 @@ function mcp.getCmdHelpInfo {
     }
 
     if (-not $extended) {
+        # Return only the synopsis or fallback
         $synopsis = $helpContent.Synopsis?.ToString().Trim() ?? $fallback
         return $synopsis
     }
 
+    # Collect extended help parts (Synopsis, Component, Role, Functionality)
     $extendedParts = $helpContent.PSObject.Properties
     | Where-Object { $_.Name -in 'Synopsis', 'Component', 'Role', 'Functionality' }
     | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Value) }
@@ -92,6 +91,7 @@ function mcp.getCmdHelpInfo {
         return [string]::Join([Environment]::NewLine, $extendedParts)
     }
 
+    # Fallback to synopsis or function name
     $result = $helpContent.Synopsis?.ToString().Trim() ?? $fallback
     return $result
 }
@@ -120,9 +120,11 @@ function mcp.InputSchema.getParams {
 
     $attrType = 'System.Management.Automation.Internal.CommonParameters+ValidateVariableName'
 
+    # Exclude certain parameter types
     $excludeNames = @(
         'OutBuffer'
     )
+    # Exclude common/internal parameter names
     $excludeTypes = @(
         [System.Management.Automation.ActionPreference],
         [System.Management.Automation.ScriptBlock],
@@ -157,6 +159,7 @@ function mcp.InputSchema.getTypeSchema {
         $parameterType
     )
 
+    # Handle array types recursively
     if ($parameterType.IsArray) {
         $elementType = $parameterType.GetElementType() ?? [string]
         return [ordered]@{
@@ -229,9 +232,10 @@ function mcp.InputSchema.getSchema {
     $schema = [ordered]@{}
 
     foreach ($functionInfoItem in $functionInfo) {
-
+        # Extract parameters for this function
         $Parameters = mcp.InputSchema.getParams -functionInfo $functionInfoItem
 
+        # Build input schema for parameters
         $inputSchema = [ordered]@{
             type       = 'object'
             properties = [ordered]@{}
@@ -239,23 +243,23 @@ function mcp.InputSchema.getSchema {
         }
 
         foreach ($parameter in $Parameters) {
-            $paramSchema = [ordered]@{}
+            # Build schema for each parameter
+            $paramSchema = mcp.InputSchema.getTypeSchema -parameterType $parameter.ParameterType
 
-            $typeSchema = mcp.InputSchema.getTypeSchema -parameterType $parameter.ParameterType
-            $typeSchema.GetEnumerator().ForEach({ $paramSchema[$_.Key] = $_.Value })
-
+            # Add parameter help as description
             $paramHelp = ($parameter.Attributes.Where({ $_.HelpMessage }).HelpMessage) ?? [string]::Empty
             $paramSchema['description'] = $paramHelp
 
+            # Add parameter to schema properties
             $inputSchema.properties[$parameter.Name] = $paramSchema
 
+            # Add to required if parameter is mandatory
             if ($parameter.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory) {
                 $inputSchema.required += $parameter.Name
             }
         }
 
-        # Build the final schema for this function (after processing all parameters)
-
+        # Build the final schema for this function
         $description = mcp.getCmdHelpInfo -functionInfo $functionInfoItem -extended
 
         $schema[$functionInfoItem.Name] = [ordered]@{
@@ -264,6 +268,7 @@ function mcp.InputSchema.getSchema {
             inputSchema = $inputSchema
         }
 
+        # Add annotations if present
         $annotations = $functionInfoItem.ScriptBlock.Attributes.Where({ $_ -is [AnnotationsAttribute] })
         if ($annotations) {
             $schema[$functionInfoItem.Name]['annotations'] = [ordered]@{
@@ -329,7 +334,7 @@ function mcp.callTool {
         $tools
     )
     try {
-
+        # Extract tool name and arguments from request
         $toolName = $request.params?.name
         $toolArgs = $request.params?.arguments ?? @{}
 
@@ -342,6 +347,7 @@ function mcp.callTool {
 
         $result = & $toolName @toolArgs
 
+        # Serialize result if not string
         $result = ($result -is [string]) ? $result : (ConvertTo-Json $result -Compress)
 
         return [PSCustomObject][ordered]@{
@@ -350,6 +356,7 @@ function mcp.callTool {
         }
     }
     catch {
+        # Return error message in result
         return [PSCustomObject][ordered]@{
             text    = $_.Exception.Message
             isError = $true
@@ -383,6 +390,7 @@ function mcp.requestHandler {
         [System.Collections.Specialized.OrderedDictionary[]] $tools
     )
 
+    # Build base response object
     $response = [ordered]@{
         jsonrpc = '2.0'
         id      = $request.id
@@ -543,24 +551,19 @@ function mcp.core.stdio.main {
         $line = $In.ReadLine();
 
         if ($null -eq $line) {
-            break;
-            # exit loop on null input (end of input stream)
+            break # Exit loop on null input (end of input stream)
         }
 
         if ([string]::IsNullOrWhiteSpace($line)) {
-            continue;
-            # skip empty input lines
+            continue # Skip empty input lines
         }
 
         try {
-
+            # Parse JSON-RPC request
             $request = ConvertFrom-Json -InputObject $line -Depth 10 -AsHashtable -ErrorAction Stop
 
-            if ($request.jsonrpc -ne '2.0') { continue }
-            # skip processing - invalid jsonrpc version
-
-            if ($null -eq $request.id) { continue }
-            # notifications have no id, so no response can be sent
+            if ($request.jsonrpc -ne '2.0') { continue } # Skip invalid jsonrpc version
+            if ($null -eq $request.id) { continue }     # Skip notifications (no id)
 
             if ($request.method -eq 'shutdown') {
                 break;
@@ -568,11 +571,13 @@ function mcp.core.stdio.main {
                 # https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle#shutdown
             }
 
+            # Handle request and write response
             $response = mcp.requestHandler -request $request -tools $tools
             $Out.WriteLine((ConvertTo-Json -Compress -Depth 10 -InputObject $response -ErrorAction Stop))
 
         }
         catch {
+            # Log error to stderr as JSON
             $err = [ordered]@{
                 input_line = $line
                 error      = $_.Exception.Message
@@ -594,8 +599,8 @@ function mcp.settings.initialize {
 
     Set-Variable -Name settings -Value (
         [PSCustomObject][ordered]@{
-            name        = ($MyInvocation.MyCommand.Module.Name) ?? 'pwsh.mcp'
-            version     = ($MyInvocation.MyCommand.Module.Version).ToString() ?? '0.0.0'
+            name        = ($MyInvocation.MyCommand.Module.Name)
+            version     = ($MyInvocation.MyCommand.Module.Version ?? [System.Version]::Parse("0.0.0")).ToString()
             logFilePath = ($env:PWSH_MCP_SERVER_LOG_FILE_PATH) ?? [System.IO.Path]::ChangeExtension($MyInvocation.MyCommand.Module.Path, ".log")
         }
     ) -Option Constant -Scope Script -Visibility Private
@@ -633,6 +638,7 @@ function New-MCPServer {
         SupportsShouldProcess = $true,
         ConfirmImpact = [System.Management.Automation.ConfirmImpact]::Low
     )]
+    [OutputType([void], [string])]
     param(
         [Parameter(
             Mandatory = $true,
@@ -652,22 +658,24 @@ function New-MCPServer {
 
     if ($PSCmdlet.ShouldProcess("MCP Server", "ensure functions: $($functionInfo.name)")) {
         # Create and start MCP server
+        # Create and start MCP server
         mcp.core.stdio.main -tools $schema
+        return
     }
-    else {
-        # Dry run: return server status and schema as JSON
-        return [ordered]@{
-            jsonrpc = "2.0"
-            method  = "notifications"
-            params  = [ordered]@{
-                level = "info"
-            }
-            psmcp   = @{
-                path    = ($MyInvocation.MyCommand.Module.path)
-                version = ($MyInvocation.MyCommand.Module.Version)?.ToString()
-            }
-            caller  = Get-PSCallStack | Select-Object -ExpandProperty Command -Skip 1
-            schema  = $schema
-        } | ConvertTo-Json -Compress -Depth 10
-    }
+
+    # Dry run: return server status and schema as JSON
+    return [ordered]@{
+        jsonrpc = "2.0"
+        method  = "notifications"
+        params  = [ordered]@{
+            level = "info"
+        }
+        psmcp   = @{
+            path    = ($MyInvocation.MyCommand.Module.path)
+            version = ($MyInvocation.MyCommand.Module.Version)?.ToString()
+        }
+        caller  = Get-PSCallStack | Select-Object -ExpandProperty Command -Skip 1
+        schema  = $schema
+    } | ConvertTo-Json -Compress -Depth 10
+
 }
