@@ -15,6 +15,13 @@ References:
 - [Security considerations](https://modelcontextprotocol.io/legacy/concepts/tools#security-considerations)
 - [Annotations](https://modelcontextprotocol.io/legacy/concepts/tools#available-tool-annotations)
 
+
+Select the functions to include in the server by adding them to the $functionInfo array.
+You can also use dynamic discovery to automatically include all functions decorated with the McpToolAttribute.
+
+$functionInfo += Get-Command -CommandType Function
+| Where-Object { $_.ScriptBlock.Attributes | Where-Object { $_ -is [McpToolAttribute] } }
+
 #>
 [CmdletBinding(
     SupportsShouldProcess = $true,
@@ -141,9 +148,9 @@ function q11 {
     return (ConvertTo-Json -InputObject $result -Compress)
 }
 
-function getProcesses {
+function get-processes {
     [McpTool(
-        Name = 'get.Processes',
+        Name = 'get.processes',
         Description = 'Return running processes'
     )]
     [OutputType('System.Management.Automation.PSCustomObject')]
@@ -169,11 +176,12 @@ $env:PWSH_MCP_SERVER_LOG_FILE_PATH = [System.IO.Path]::ChangeExtension(
 # Skip server initialization when the script is dot-sourced (e.g. from tests).
 if ($MyInvocation.InvocationName -ne '.') {
 
-    # $functionInfo = (Get-Item Function:abc, Function:cde -ErrorAction Stop)
+    # Initial function info with explicitly defined functions (e.g. for testing purposes).
+    $functionInfo = (Get-Item Function:abc, Function:cde -ErrorAction Stop)
 
-    # Dynamically discover functions with the Mcp.ToolAttribute to include in the server.
-    $functionInfo = Get-Command -CommandType Function
-    | Where-Object { $_.ScriptBlock.Attributes | Where-Object { $_ -is [McpToolAttribute] } }
+    # Dynamically discover functions with the McpToolAttribute to include in the server.
+    $functionInfo += Get-Command -CommandType Function
+    | Where-Object { $PSItem.ScriptBlock.Attributes.Where({ $PSItem -is [McpToolAttribute] }) }
 
     New-MCPServer -functionInfo $functionInfo
 }
