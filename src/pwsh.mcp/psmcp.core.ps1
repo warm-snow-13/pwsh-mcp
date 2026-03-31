@@ -131,15 +131,12 @@ function mcp.InputSchema.getParams {
         [System.Management.Automation.SwitchParameter]
     )
 
-    $Parameters = $functionInfo.Parameters.Values
-    | Where-Object {
+    $functionInfo.Parameters.Values | Where-Object {
         ($_.Name -notin $excludeNames) -and
         ($_.ParameterType -notin $excludeTypes) -and
-        -not ($_.Attributes | Where-Object { $_.GetType().FullName -eq $attrType }) -and
-        -not ($_.Attributes | Where-Object { $_.DontShow -eq $true })
+        -not ($_.Attributes.Where({ $_.GetType().FullName -eq $attrType })) -and
+        -not ($_.Attributes.Where({ $_.DontShow }))
     }
-
-    return $Parameters
 }
 
 function mcp.InputSchema.getTypeSchema {
@@ -652,6 +649,10 @@ function New-MCPServer {
     # MCP/stdio and common JSON-RPC usage expect UTF-8; enforce UTF-8 for stdin/stdout.
     [Console]::OutputEncoding = [Console]::InputEncoding = [System.Text.Encoding]::UTF8
 
+    # Set output rendering to PlainText
+    $PSStyle.OutputRendering = [System.Management.Automation.OutputRendering]::PlainText
+
+    # Initialize server settings and configuration
     mcp.settings.initialize
 
     $schema = mcp.InputSchema.getSchema -functionInfo $functionInfo
