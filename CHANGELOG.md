@@ -18,7 +18,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [0.1.5] - 2026-04-01
+
+### Added
+
+- MCP tool registration via attributes ([McpToolAttribute])
+- User guide: note about automatic export of functions with [McpToolAttribute]
 - Agent skill for creating PowerShell MCP servers
+- Performance benchmarking script for pwsh.mcp functions
+
+### Changed
+
+- Improved performance and optimized schema generation.
 
 ## [0.1.4] - 2026-03-09
 
