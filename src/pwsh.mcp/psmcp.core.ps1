@@ -60,40 +60,22 @@ function mcp.getCmdHelpInfo {
     )
 
     $fallback = $functionInfo.Name
-    $helpContent = $null
 
-    # Try to extract help content from AST, fallback to function name
-    try {
-        $helpContent = $functionInfo.ScriptBlock?.Ast?.GetHelpContent()
-    }
-    catch {
-        $helpContent = $null
-    }
+    $helpContent = try { $functionInfo.ScriptBlock?.Ast?.GetHelpContent() } catch { $null }
 
-    if (-not $helpContent) {
-        return $fallback
-    }
+    if (-not $helpContent) { return $fallback }
 
-    if (-not $extended) {
-        # Return only the synopsis or fallback
-        $synopsis = $helpContent.Synopsis?.ToString().Trim() ?? $fallback
-        return $synopsis
-    }
+    $synopsis = $helpContent.Synopsis?.ToString().Trim() ?? $fallback
 
-    # Collect extended help parts (Synopsis, Component, Role, Functionality)
-    $extendedParts = $helpContent.PSObject.Properties
+    if (-not $extended) { return $synopsis }
+
+    $parts = $helpContent.PSObject.Properties
     | Where-Object { $_.Name -in 'Synopsis', 'Component', 'Role', 'Functionality' }
     | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Value) }
     | ForEach-Object { [string]::Concat($_.Name, ': ', ([string]$_.Value).Trim()) }
 
+    return ([string]::Join([Environment]::NewLine, $parts)) ?? $fallback
 
-    if ($extendedParts) {
-        return [string]::Join([Environment]::NewLine, $extendedParts)
-    }
-
-    # Fallback to synopsis or function name
-    $result = $helpContent.Synopsis?.ToString().Trim() ?? $fallback
-    return $result
 }
 
 function mcp.InputSchema.getParams {
@@ -197,6 +179,7 @@ function mcp.InputSchema.getSchema {
     <#
     .SYNOPSIS
         Build JSON-schema-like input description for PowerShell functions.
+
     .DESCRIPTION
         For each supplied FunctionInfo builds an ordered object with:
         - name
@@ -209,9 +192,9 @@ function mcp.InputSchema.getSchema {
 
     .NOTES
         Supported complex types:
-            - Arrays: type=array + items
-            - DateTime/DateTimeOffset: type=string + format=date-time
-            - Hashtable/object-like: type=object + additionalProperties=true
+        - Arrays: type=array + items
+        - DateTime/DateTimeOffset: type=string + format=date-time
+        - Hashtable/object-like: type=object + additionalProperties=true
     #>
     [Alias("Get-McpInputSchema")]
     [OutputType([System.Collections.Specialized.OrderedDictionary[]])]
@@ -303,12 +286,12 @@ function mcp.callTool {
 
     .NOTES
 
-    References: Method: tools/call
-    https://modelcontextprotocol.io/specification/2025-11-25/server/tools#calling-tools
+        References: Method: tools/call
+        https://modelcontextprotocol.io/specification/2025-11-25/server/tools#calling-tools
 
-    SECURITY:
-    - Ensure that only allowed tools are invoked
-    - When logging, avoid sensitive data exposure (only argument keys, not a values)
+        SECURITY:
+        - Ensure that only allowed tools are invoked
+        - When logging, avoid sensitive data exposure (only argument keys, not a values)
 
     #>
     [OutputType([PSCustomObject])]
