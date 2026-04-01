@@ -47,7 +47,7 @@ The module automatically generates the tool schema based on the function signatu
 
 The repository includes several functional examples in the [samples/](../samples/) directory.
 
-This simple example demonstrates a minimal PowerShell MCP server.
+This **simple example** demonstrates a minimal PowerShell MCP server.
 
 ```powershell
 # Import MCP module
@@ -77,11 +77,39 @@ function get_greeting {
 New-MCPServer -FunctionInfo (Get-Item Function:get_greeting)
 ```
 
-The `[ValidateLength(1, 25)]` attribute constrains the `Name` parameter to 1–25 characters, guarding against oversized input.
-The `[Annotations]` attribute supplies client-facing metadata - in this case, a display title and a read-only hint.
-The function `New-MCPServer` starts the MCP server and registers `get_greeting` as an available tool via the `FunctionInfo` parameter.
-When a parameter has a `mandatory=true` attribute, it will be automatically exposed in the tool's schema as a **required** parameter.
 The '.Synopsis' comment-based help section is used as the tool description in the generated schema.
+
+The `[ValidateLength(1, 25)]` attribute constrains the `Name` parameter to 1–25 characters, guarding against oversized input.
+
+When a parameter has a `mandatory=true` attribute, it will be automatically exposed in the tool's schema as a **required** parameter.
+
+The `[Annotations]` attribute supplies client-facing metadata - in this case, a display title and a read-only hint.
+
+The function `New-MCPServer` starts the MCP server and registers `get_greeting` as an available tool via the `FunctionInfo` parameter.
+
+You can also automatically export all functions decorated with the `[McpTool()]` attribute—these will be discovered and registered by the server without manual listing. Use this mechanism to ensure new tools are registered automatically.
+
+**Example function:**
+
+```powershell
+function get-processes {
+  [McpTool(Name = 'get.processes', Description = 'Return running processes')]
+  [OutputType('System.Management.Automation.PSCustomObject')]
+  [CmdletBinding()]
+  param()
+  # ...
+}
+
+# Add core functions explicitly
+$functionInfo = (Get-Item Function:abc, Function:cde -ErrorAction Stop)
+
+# Dynamically add all functions with [McpToolAttribute]
+$functionInfo += Get-Command
+| Where-Object { $_.ScriptBlock.Attributes | Where-Object { $_ -is [McpToolAttribute] }
+
+New-MCPServer -FunctionInfo $functionInfo
+
+```
 
 ### Return values
 

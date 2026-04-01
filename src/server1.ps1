@@ -15,6 +15,13 @@ References:
 - [Security considerations](https://modelcontextprotocol.io/legacy/concepts/tools#security-considerations)
 - [Annotations](https://modelcontextprotocol.io/legacy/concepts/tools#available-tool-annotations)
 
+
+Select the functions to include in the server by adding them to the $functionInfo array.
+You can also use dynamic discovery to automatically include all functions decorated with the McpToolAttribute.
+
+$functionInfo += Get-Command -CommandType Function
+| Where-Object { $_.ScriptBlock.Attributes | Where-Object { $_ -is [McpToolAttribute] } }
+
 #>
 [CmdletBinding(
     SupportsShouldProcess = $true,
@@ -30,8 +37,7 @@ function abc {
         Return a concise formatted status object as JSON.
 
     .DESCRIPTION
-        Demo tool that accepts a short string and an integer, validates input,
-        and returns a small JSON payload describing the result.
+        Demo tool that accepts a short string and an integer, validates input, and returns a small JSON payload describing the result.
 
     .PARAMETER text
         Optional string (max 10 characters). Default: 'hello'.
@@ -133,12 +139,32 @@ function cde {
     return (ConvertTo-Json -InputObject $result -Compress)
 }
 
-function q11 {
+function get-test {
     $result = [PSCustomObject]@{
-        message = "This is a test of the q11 function."
+        message = "This is a test string"
         time    = (Get-Date).ToString('o')
     }
     return (ConvertTo-Json -InputObject $result -Compress)
+}
+
+function get-processes {
+    [McpTool(
+        Name = 'get.processes',
+        Description = 'Return running processes'
+    )]
+    [OutputType('System.Management.Automation.PSCustomObject')]
+    [CmdletBinding()]
+    param()
+    Get-Process
+    | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Name) }
+    | Sort-Object -Property CPU -Descending
+    | Select-Object -First 3 | ForEach-Object {
+        [PSCustomObject]@{
+            Name = $_.Name
+            Id   = $_.Id
+            CPU  = $_.CPU
+        }
+    }
 }
 
 $env:PWSH_MCP_SERVER_LOG_FILE_PATH = [System.IO.Path]::ChangeExtension(
@@ -148,5 +174,14 @@ $env:PWSH_MCP_SERVER_LOG_FILE_PATH = [System.IO.Path]::ChangeExtension(
 
 # Skip server initialization when the script is dot-sourced (e.g. from tests).
 if ($MyInvocation.InvocationName -ne '.') {
-    New-MCPServer -functionInfo (Get-Item Function:abc, Function:cde -ErrorAction Stop)
+
+    # Initial function info with explicitly defined functions (e.g. for testing purposes).
+    $functionInfo = (Get-Item Function:abc, Function:cde -ErrorAction Stop)
+
+    # Dynamically discover functions with the McpToolAttribute to include in the server.
+    $functionInfo += Get-Command -CommandType Function | Where-Object {
+        $_.ScriptBlock -and $_.ScriptBlock.Attributes.Where({ param($attr) $attr -is [McpToolAttribute] }).Count -gt 0
+    }
+
+    New-MCPServer -functionInfo $functionInfo
 }

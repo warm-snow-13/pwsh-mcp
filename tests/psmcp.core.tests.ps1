@@ -464,7 +464,8 @@ Describe 'PSMCP Module' -Tag 'CoreModule', 'MCPProtocol' {
             Mock -CommandName Add-Content -MockWith {}
 
             $logEntry = @{ Event = 'TestEvent'; Data = 'TestData' }
-            { psmcp.writeLog  -LogEntry $logEntry } | Should -Not -Throw
+
+            { psmcp.writeLog  -LogEntry $logEntry -LogFilePath $testLogPath } | Should -Not -Throw
         }
 
         AfterAll {

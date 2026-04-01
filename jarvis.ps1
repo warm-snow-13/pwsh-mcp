@@ -24,16 +24,14 @@
     '',
     Justification = 'Used for CI script output.'
 )]
+[OutputType('System.Management.Automation.PSCustomObject')]
 [CmdletBinding(
-    SupportsShouldProcess = $true,
+    SupportsShouldProcess,
     ConfirmImpact = [System.Management.Automation.ConfirmImpact]::Low
 )]
 param(
-    [Parameter(
-        Mandatory = $false,
-        HelpMessage = 'Action to perform: build, deploy, ...'
-    )]
-    [validateSet(
+    [Parameter(HelpMessage = 'Action to perform: build, deploy, ...')]
+    [ValidateSet(
         'build',
         'clean',
         'deploy',
@@ -41,15 +39,11 @@ param(
         'hello',
         'remove'
     )]
-    [string]
-    $action,
+    [Alias('a')]
+    [string]$Action,
 
-    [Parameter(
-        DontShow,
-        HelpMessage = 'Stopwatch for measuring elapsed time.'
-    )]
-    [system.diagnostics.stopwatch]
-    $stopWatch = [system.diagnostics.stopwatch]::StartNew()
+    [Parameter(DontShow)]
+    [System.Diagnostics.Stopwatch]$StopWatch = [System.Diagnostics.Stopwatch]::StartNew()
 )
 
 # -- Set Debug and Verbose preferences to Continue --
@@ -101,7 +95,7 @@ Import-Module "$PSScriptRoot/src/pwsh.mcp/pwsh.mcp.psd1" -Force -ErrorAction Sto
 Write-Host "Getting the latest git tag ..."
 git --git-dir="$PSScriptRoot/.git" describe --abbrev=0 2>$null
 
-switch ($action.ToLower()) {
+switch ($Action.ToLowerInvariant()) {
     'deploy' {
         Write-Verbose "* Deploying module from the local PSRepository"
         # Get module info before installation
