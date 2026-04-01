@@ -74,8 +74,9 @@ function mcp.getCmdHelpInfo {
     | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Value) }
     | ForEach-Object { [string]::Concat($_.Name, ': ', ([string]$_.Value).Trim()) }
 
-    return ([string]::Join([Environment]::NewLine, $parts)) ?? $fallback
+    if (-not $parts) { return $synopsis }
 
+    return [string]::Join([Environment]::NewLine, $parts)
 }
 
 function mcp.InputSchema.getParams {
