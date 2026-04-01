@@ -22,8 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- MCP tool registration via attributes ([McpToolAttribute])
-- User guide: note about automatic export of functions with [McpToolAttribute]
+- MCP tool registration via attributes (`McpToolAttribute`)
+- User guide: note about automatic export of functions with `McpToolAttribute`
 - Agent skill for creating PowerShell MCP servers
 - Performance benchmarking script for pwsh.mcp functions
 
