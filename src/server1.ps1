@@ -37,8 +37,7 @@ function abc {
         Return a concise formatted status object as JSON.
 
     .DESCRIPTION
-        Demo tool that accepts a short string and an integer, validates input,
-        and returns a small JSON payload describing the result.
+        Demo tool that accepts a short string and an integer, validates input, and returns a small JSON payload describing the result.
 
     .PARAMETER text
         Optional string (max 10 characters). Default: 'hello'.
@@ -140,9 +139,9 @@ function cde {
     return (ConvertTo-Json -InputObject $result -Compress)
 }
 
-function q11 {
+function get-test {
     $result = [PSCustomObject]@{
-        message = "This is a test of the q11 function."
+        message = "This is a test string"
         time    = (Get-Date).ToString('o')
     }
     return (ConvertTo-Json -InputObject $result -Compress)
@@ -180,8 +179,7 @@ if ($MyInvocation.InvocationName -ne '.') {
     $functionInfo = (Get-Item Function:abc, Function:cde -ErrorAction Stop)
 
     # Dynamically discover functions with the McpToolAttribute to include in the server.
-    $functionInfo += Get-Command -CommandType Function
-    | Where-Object { $PSItem.ScriptBlock.Attributes.Where({ $PSItem -is [McpToolAttribute] }) }
+    $functionInfo += Get-Command | Where-Object { $PSItem.ScriptBlock.Attributes.Where({ $PSItem -is [McpToolAttribute] }) }
 
     New-MCPServer -functionInfo $functionInfo
 }
