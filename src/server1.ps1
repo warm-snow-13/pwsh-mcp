@@ -179,7 +179,9 @@ if ($MyInvocation.InvocationName -ne '.') {
     $functionInfo = (Get-Item Function:abc, Function:cde -ErrorAction Stop)
 
     # Dynamically discover functions with the McpToolAttribute to include in the server.
-    $functionInfo += Get-Command | Where-Object { $PSItem.ScriptBlock.Attributes.Where({ $PSItem -is [McpToolAttribute] }) }
+    $functionInfo += Get-Command -CommandType Function | Where-Object {
+        $_.ScriptBlock -and $_.ScriptBlock.Attributes.Where({ param($attr) $attr -is [McpToolAttribute] }).Count -gt 0
+    }
 
     New-MCPServer -functionInfo $functionInfo
 }
