@@ -93,7 +93,7 @@ You can also automatically export all functions decorated with the `[McpTool()]`
 
 ```powershell
 function get-processes {
-  [McpTool(Name = 'get.processes', Description = 'Return running processes')]
+  [McpTool()]
   [OutputType('System.Management.Automation.PSCustomObject')]
   [CmdletBinding()]
   param()
