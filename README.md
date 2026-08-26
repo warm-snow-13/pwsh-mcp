@@ -48,7 +48,7 @@ PowerShell combines a mature automation ecosystem with cross-platform support.
 - **Pure PowerShell implementation** – no external runtime dependencies, leverages native PowerShell capabilities.
 - **Stdio-based MCP server** – stdio transport implementation for integration with MCP clients such as GitHub Copilot and Gemini CLI.
 - **Cross-platform support** – consistent behavior across platforms (Windows, Linux, macOS) with the same codebase.
-- **Automatic schema generation** – converts PowerShell function parameters, validation attributes, and Comment-Based Help into JSON Schema definitions for MCP tools.
+- **Automatic schema generation** – converts supported PowerShell function parameter types and Comment-Based Help into JSON Schema definitions for MCP tools.
 - **Parameter validation** – leverages PowerShell's declarative validation attributes for type-safe MCP tool inputs.
 
 ## Architecture Overview
