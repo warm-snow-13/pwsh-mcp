@@ -540,9 +540,9 @@ Visual Studio Code recognizes only Title and ReadOnlyHint annotations.
 - Use title case
 - Set `ReadOnlyHint = $true` for tools that do not modify state
 
-## Docker Configuration
+## Docker Runtime Example
 
-Running the MCP server in a Docker container isolates the server process from the host. This can improve security and simplify dependency management. Below is an _example configuration for running a PowerShell MCP server in a Docker container_, with volume mounts for development files.
+Docker is an external runtime choice for a PowerShell MCP server; it is not provided or managed by this module. The following example runs a server in a container with volume mounts for development files.
 
 **Example Configuration:** file `.vscode/mcp.json` (workspace-level)
 

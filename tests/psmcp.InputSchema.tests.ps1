@@ -98,7 +98,7 @@ Describe 'mcp.InputSchema.getSchema - JSON Schema Generation for PowerShell Func
         }
 
         function TestFunc_Annotated {
-            [Annotations(Title = 'Annotated tool title', ReadOnlyHint = $true, OpenWorldHint = $false)]
+            [Annotations(Title = 'Annotated tool title', ReadOnlyHint = $true)]
             [CmdletBinding()]
             param(
                 [Parameter(Mandatory = $true, HelpMessage = 'Visible value')]
@@ -223,6 +223,7 @@ Describe 'mcp.InputSchema.getSchema - JSON Schema Generation for PowerShell Func
         $schema.annotations.title | Should -Be 'Annotated tool title'
         $schema.annotations.readOnlyHint | Should -BeTrue
         $schema.annotations.openWorldHint | Should -BeFalse
+        $schema.annotations.destructiveHint | Should -BeFalse
         $schema.title | Should -Be 'Annotated tool title'
     }
 

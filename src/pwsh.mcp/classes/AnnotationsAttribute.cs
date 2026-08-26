@@ -33,12 +33,12 @@ public sealed class AnnotationsAttribute : Attribute
     {
         Title = string.Empty;
         ReadOnlyHint = false;
-        OpenWorldHint = true;
-        DestructiveHint = true;
+        OpenWorldHint = false;
+        DestructiveHint = false;
         IdempotentHint = false;
     }
 
-    public AnnotationsAttribute(string title, bool readOnlyHint = false, bool openWorldHint = true, bool destructiveHint = true, bool idempotentHint = false)
+    public AnnotationsAttribute(string title, bool readOnlyHint = false, bool openWorldHint = false, bool destructiveHint = false, bool idempotentHint = false)
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("title must not be empty", nameof(title));

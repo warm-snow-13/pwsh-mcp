@@ -12,6 +12,9 @@ on:
     # Run CI only when PowerShell sources or tests are changed
     paths:
       - 'src/**/*.ps1'
+      - 'src/**/*.psm1'
+      - 'src/**/*.psd1'
+      - 'src/**/*.cs'
       - 'tests/**/*.ps1'
       - 'config.*.psd1'
       - 'ci.ps1'
@@ -21,6 +24,9 @@ on:
     # Run CI for PRs that modify PowerShell sources or tests
     paths:
       - 'src/**/*.ps1'
+      - 'src/**/*.psm1'
+      - 'src/**/*.psd1'
+      - 'src/**/*.cs'
       - 'tests/**/*.ps1'
       - 'config.*.psd1'
       - 'ci.ps1'
@@ -45,12 +51,26 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest]
-        pwsh-version: ["7.4"]
+        pwsh-version: ["7.5"]
       fail-fast: false
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+
+      - name: Verify PowerShell version
+        shell: pwsh
+        run: |
+          if ($PSVersionTable.PSVersion -lt [version]'7.5.0') {
+            throw "PowerShell 7.5 or later is required; found $($PSVersionTable.PSVersion)."
+          }
+
+      - name: Validate module manifest and import
+        shell: pwsh
+        run: |
+          $manifestPath = Join-Path $PWD 'src/pwsh.mcp/pwsh.mcp.psd1'
+          $module = Test-ModuleManifest -Path $manifestPath -ErrorAction Stop
+          Import-Module -Name $manifestPath -Force -ErrorAction Stop
 
       - name: Install PowerShell modules
         shell: pwsh
@@ -88,12 +108,26 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        pwsh-version: ["7.4"]
+        pwsh-version: ["7.5"]
       fail-fast: false
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+
+      - name: Verify PowerShell version
+        shell: pwsh
+        run: |
+          if ($PSVersionTable.PSVersion -lt [version]'7.5.0') {
+            throw "PowerShell 7.5 or later is required; found $($PSVersionTable.PSVersion)."
+          }
+
+      - name: Validate module manifest and import
+        shell: pwsh
+        run: |
+          $manifestPath = Join-Path $PWD 'src/pwsh.mcp/pwsh.mcp.psd1'
+          $module = Test-ModuleManifest -Path $manifestPath -ErrorAction Stop
+          Import-Module -Name $manifestPath -Force -ErrorAction Stop
 
       - name: Install PowerShell modules
         shell: pwsh

@@ -7,7 +7,7 @@
 [![PowerShell Gallery downloads](https://img.shields.io/powershellgallery/dt/pwsh.mcp?label=Downloads)](https://www.powershellgallery.com/packages/pwsh.mcp)
 [![Maintenance](https://img.shields.io/maintenance/yes/2026.svg?label=Maintenance)](https://github.com/warm-snow-13/pwsh-mcp)
 
-![psmcp](./docs/assets/psmcp_2025.png)
+<img src="./docs/assets/psmcp_2025.png" alt="PWSH MCP" width="60%">
 
 PWSH MCP — Build and expose PowerShell automation as MCP tools on demand.
 
@@ -30,18 +30,18 @@ The PowerShell MCP module lets you build Model Context Protocol (MCP) servers di
 
 Instead of writing a server from scratch, you define functionality as PowerShell functions and expose it to MCP clients through JSON-RPC 2.0 over stdio transport.
 
+**Current implementation scope:** MCP tools over stdio transport. Resources, prompts, and HTTP-based transports are not implemented.
+
 This approach is useful for development, infrastructure management, and CI/CD automation scenarios where PowerShell scripts already exist and need to be exposed as structured tools for AI assistants.
 
 **Why PowerShell for MCP Servers:**
 
-PowerShell is well-suited for implementing MCP servers for automation processes because it combines a rich automation ecosystem with native cross-platform capabilities.
+PowerShell combines a mature automation ecosystem with cross-platform support.
 
-- **Large module ecosystem** – You can reuse existing PowerShell [modules](https://www.powershellgallery.com/) (Azure, AWS, VMware, Active Directory, Exchange, and many others) to quickly extend MCP server capabilities without rewriting existing automation.
-- **Cross-platform integration** – PowerShell runs natively on Windows, Linux, and macOS, making it easy to deploy the same MCP server in different environments.
-- **Reuse of existing scripts** – Many automation workflows already exist as PowerShell scripts or functions; the module allows you to expose them as MCP tools with minimal changes.
-- **Easy testability** – PowerShell functions can be tested independently with Pester before wiring them into MCP, simplifying debugging and iterative development.
-- **Strong parameter validation** – Built-in parameter attributes provide declarative input validation, reducing boilerplate and runtime errors from invalid inputs and improving tool reliability.
-- **Metadata-driven documentation** – Comment-Based Help and parameter attributes let you keep function documentation and MCP schemas in sync. The same metadata is used both for human-readable help and for automatic JSON Schema generation.
+- **Reuse existing automation** – expose established scripts and [modules](https://www.powershellgallery.com/) such as Azure, AWS, VMware, Active Directory, and Exchange tools without rewriting them.
+- **Cross-platform integration** – run the same MCP server on Windows, Linux, and macOS.
+- **Testable, validated tools** – test functions independently with Pester and use native parameter attributes for declarative input validation.
+- **Metadata-driven schemas** – use Comment-Based Help and parameter attributes to keep documentation aligned with automatically generated JSON Schema.
 
 ## Features
 
@@ -70,31 +70,12 @@ The module implements the MCP lifecycle on top of stdio and JSON-RPC 2.0:
 
 ## Use Cases
 
-Typical scenarios include automating repetitive tasks, exposing existing scripts as tools for AI assistants, and integrating with local tools or cloud services:
+Typical scenarios include:
 
-**Rapid tool development:**
-
-- Converting existing admin or maintenance scripts into reusable MCP tools.
-- Prototyping developer utilities specific to a team or project.
-- Building ad-hoc tools during a development session and immediately exposing them to AI coding assistants.
-
-**DevOps and CI/CD automation:**
-
-- Orchestrating deployment pipelines through MCP tools backed by existing PowerShell scripts.
-- Exposing infrastructure-as-code workflows (Terraform, Ansible) via PowerShell wrappers.
-- Managing build artifacts, release gates, and deployment validation steps as MCP tools.
-
-**Infrastructure management:**
-
-- Managing cloud resources (Azure PowerShell, AWS Tools for PowerShell, Google Cloud modules).
-- Automating on-premises environments: Active Directory, Exchange, VMware, network devices, and more.
-- Implementing monitoring and alerting workflows using existing PowerShell-based monitoring modules.
-
-**Enterprise automation:**
-
-- Integrating with external systems via REST or SDK-based PowerShell modules.
-- Implementing compliance checks and audit pipelines using security-focused PowerShell modules.
-- Generating reports and analytics by combining data-processing cmdlets with MCP tooling.
+- **Rapid tool development** – convert existing administration scripts into reusable MCP tools or prototype team-specific utilities.
+- **DevOps and CI/CD automation** – expose deployment pipelines, infrastructure-as-code workflows, build artifacts, release gates, and validation steps.
+- **Infrastructure management** – manage cloud and on-premises resources, or build monitoring and alerting workflows with existing PowerShell modules.
+- **Enterprise automation** – integrate REST or SDK-based systems, compliance checks, audit pipelines, reporting, and analytics.
 
 ## Requirements
 
@@ -108,9 +89,9 @@ Any MCP-compliant client that implements the MCP stdio transport and the core MC
 The repository currently includes documentation and examples for the following MCP clients:
 
 - [GitHub Copilot](https://code.visualstudio.com/docs/copilot/overview) – AI coding assistant.
-- [GitHub Copilot CLI](https://github.com/features/copilot/cli) – command-line interface for GitHub Copilot.
+- [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli#add-an-mcp-server) – MCP server configuration.
 - [Gemini CLI](https://geminicli.com/docs/) – command-line AI assistant with MCP support.
-- [Claude Desktop](https://support.claude.com/en/) – AI assistant.
+- [Claude Desktop](https://modelcontextprotocol.io/docs/develop/connect-local-servers) – local MCP server configuration.
 
 ## Getting Started
 
@@ -183,7 +164,7 @@ Refer to the [user guide](./docs/pwsh.mcp.ug.md) for additional examples and adv
 
 To configure an MCP client, see the official documentation for the related client:
 
-- [Use MCP Servers in VS Code](https://code.visualstudio.com/docs/copilot/customization/mcp-servers)
+- [Use MCP Servers in VS Code](https://code.visualstudio.com/docs/agent-customization/mcp-servers)
 - [MCP Servers with the Gemini CLI](https://geminicli.com/docs/tools/mcp-server/)
 
 ⏺ **Call the MCP tool** from your MCP client (e.g., GitHub Copilot in Visual Studio Code):
@@ -206,7 +187,7 @@ To configure an MCP client, see the official documentation for the related clien
 - [PowerShell Documentation](https://learn.microsoft.com/en-us/powershell/)
 - [PowerShell Cmdlet Development Guidelines](https://learn.microsoft.com/en-us/powershell/scripting/developer/cmdlet/cmdlet-development-guidelines)
 - [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [GitHub Copilot CLI](https://github.com/features/copilot/cli)
+- [GitHub Copilot CLI MCP configuration](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli#add-an-mcp-server)
 - [Gemini CLI](https://geminicli.com/docs/)
 
 ## License
