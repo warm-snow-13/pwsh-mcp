@@ -196,6 +196,22 @@
   "errorLens.fontSize": "-1px",
   "powershell.debugging.createTemporaryIntegratedConsole": true,
   "git.autorefresh": true,
-  "gitlens.views.repositories.autoRefresh": true
+  "gitlens.views.repositories.autoRefresh": true,
+  "chat.artifacts.enabled": true,
+  "chat.artifacts.rules.byFilePath": {
+    "**/*.psm1": {
+      "groupName": "PowerShell Modules"
+    },
+    "**/*.md": {
+      "groupName": "Docs / Plans"
+    }
+  },
+  "chat.artifacts.rules.byMimeType": {
+    "image/*": {
+      "groupName": "Generated Images",
+      "onlyShowGroup": true
+    }
+  },
+  "markdown.preview.doubleClickToSwitchToEditor": true
   /* End of workspace settings */
 }

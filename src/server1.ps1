@@ -148,10 +148,11 @@ function get-test {
 }
 
 function get-processes {
-    [McpTool(
-        Name = 'get.processes',
-        Description = 'Return running processes'
-    )]
+    <#
+    .SYNOPSIS
+        Retrieve the top 3 processes by CPU usage.
+    #>
+    [McpTool()]
     [OutputType('System.Management.Automation.PSCustomObject')]
     [CmdletBinding()]
     param()
@@ -180,7 +181,8 @@ if ($MyInvocation.InvocationName -ne '.') {
 
     # Dynamically discover functions with the McpToolAttribute to include in the server.
     $functionInfo += Get-Command -CommandType Function | Where-Object {
-        $_.ScriptBlock -and $_.ScriptBlock.Attributes.Where({ param($attr) $attr -is [McpToolAttribute] }).Count -gt 0
+        $_.ScriptBlock -and
+        $_.ScriptBlock.Attributes.Where({ $_ -is [McpToolAttribute] }, 'First')
     }
 
     New-MCPServer -functionInfo $functionInfo
