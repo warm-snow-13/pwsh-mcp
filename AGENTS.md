@@ -20,7 +20,7 @@ project:
   name: pwsh.mcp
   purpose: Expose PowerShell functions as MCP tools over JSON-RPC 2.0 stdio transport.
   runtime: PowerShell 7.5+
-  tests: Pester 5.7+
+  tests: Pester 6.1.0
   analysis: PSScriptAnalyzer 1.25+
 topology:
   src/: { purpose: module source and example server }
@@ -53,7 +53,7 @@ topology:
 Install missing dependencies:
 
 ```powershell
-Install-Module -Name Pester -Force
+Install-Module -Name Pester -RequiredVersion 6.1.0 -Force
 Install-Module -Name PSScriptAnalyzer -Force
 ```
 

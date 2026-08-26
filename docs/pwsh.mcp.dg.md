@@ -25,7 +25,7 @@ Required modules for development:
 
 ```powershell
 # Install testing framework
-Install-Module -Name Pester -Force
+Install-Module -Name Pester -RequiredVersion 6.1.0 -Force
 
 # Install static analyzer
 Install-Module -Name PSScriptAnalyzer -Force

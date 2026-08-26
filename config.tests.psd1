@@ -6,7 +6,7 @@
     For more information about Pester configuration,
     see https://pester.dev/docs/usage/configuration
 
-    OutputFormat: JaCoCo | CoverageGutters
+    OutputFormat: JaCoCo
 
 #>
 @{
