@@ -33,7 +33,7 @@ Copyright = '(c) 2026 igor.stepanushko@gmail.com. Licensed under the MIT License
 Description = 'Lightweight PowerShell MCP framework. Expose custom PowerShell functions through a pure-PowerShell MCP server to integrate with MCP-compliant AI agents.'
 
 # Minimum version of the PowerShell engine required by this module
-PowerShellVersion = '7.4.0'
+PowerShellVersion = '7.5.0'
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''

@@ -8,7 +8,7 @@
     - Imports and exports expected commands (e.g. New-MCPServer, Add-MCPServer).
     - Contains correct metadata: semantic version, GUID, CompatiblePSEditions, PrivateData tags, LicenseURI.
 
-    Tests are idempotent, clean up module state after run, and target PowerShell 7.4+ for CI and local execution.
+    Tests are idempotent, clean up module state after run, and target PowerShell 7.5+ for CI and local execution.
 
 #>
 
@@ -61,12 +61,14 @@ Describe "$($Script:data.moduleName) Module Tests" -Tag 'ModuleStructure' {
         }
 
         It 'Should import without errors' {
-            { Import-Module -Name $Script:data.ModulePath -Force -ErrorAction Stop } | Should -Not -Throw
+            Remove-Module -Name $Script:data.ModuleName -Force -ErrorAction SilentlyContinue
+            { Import-Module -Name $Script:data.ModuleManifestPath -Force -ErrorAction Stop } | Should -Not -Throw
             Get-Module -Name $Script:data.ModuleName | Should -Not -BeNullOrEmpty
         }
 
         It 'Should export expected commands' {
-            { Import-Module -Name $Script:data.ModulePath -Force -ErrorAction Stop } | Should -Not -Throw
+            Remove-Module -Name $Script:data.ModuleName -Force -ErrorAction SilentlyContinue
+            { Import-Module -Name $Script:data.ModuleManifestPath -Force -ErrorAction Stop } | Should -Not -Throw
             $commands = Get-Command -Module $Script:data.ModuleName -ErrorAction Stop
             $commands | Should -Not -BeNullOrEmpty
             $commands.Name | Should -Contain 'New-MCPServer'
@@ -167,7 +169,7 @@ Describe 'PSMCP Module Manifest' -Tag 'ModuleManifest' {
         }
 
         It 'Should have expected minimum PowerShellVersion value' {
-            ([Version]$Script:moduleInformation.PowerShellVersion) | Should -Be ([Version]'7.4.0')
+            ([Version]$Script:moduleInformation.PowerShellVersion) | Should -Be ([Version]'7.5.0')
         }
 
     }
@@ -243,4 +245,3 @@ Describe 'PSMCP Module Manifest' -Tag 'ModuleManifest' {
     }
 
 }
-

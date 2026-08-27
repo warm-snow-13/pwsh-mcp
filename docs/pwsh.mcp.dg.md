@@ -25,7 +25,7 @@ Required modules for development:
 
 ```powershell
 # Install testing framework
-Install-Module -Name Pester -Force
+Install-Module -Name Pester -RequiredVersion 6.1.0 -Force
 
 # Install static analyzer
 Install-Module -Name PSScriptAnalyzer -Force
@@ -329,7 +329,7 @@ Tool descriptors are generated automatically from PowerShell function metadata �
 
 1. Parse function `FunctionInfo` object
 2. Retrieve synopsis and description via `Get-Help` → tool `description` field
-3. Extract parameters, skipping common parameters (`OutBuffer`, `SwitchParameter`, etc.) and parameters marked `DontShow`
+3. Extract supported parameters, skipping configured internal/common types (`OutBuffer`, `SwitchParameter`, `ActionPreference`, `ScriptBlock`, etc.) and parameters marked `DontShow`
 4. Map PowerShell types to JSON Schema types: `string`, `integer`, `number`, `boolean`
 5. Read `[Parameter(HelpMessage = "...")]` → property `description`
 6. Read `[Parameter(Mandatory = $true)]` → add to `required` array

@@ -105,7 +105,7 @@ $functionInfo = (Get-Item Function:abc, Function:cde -ErrorAction Stop)
 
 # Dynamically add all functions with [McpToolAttribute]
 $functionInfo += Get-Command
-| Where-Object { $_.ScriptBlock.Attributes | Where-Object { $_ -is [McpToolAttribute] }
+| Where-Object { $_.ScriptBlock.Attributes | Where-Object { $_ -is [McpToolAttribute] } }
 
 New-MCPServer -FunctionInfo $functionInfo
 
@@ -127,7 +127,7 @@ Below is a brief list of PowerShell parameter types that the module automaticall
 - **string**: `[string]`, `[System.String]` — JSON Schema: `type: "string"`. Used for text values.
 - **integer**: `[int]`, `[long]`, `[System.Int32]`, `[System.Int64]` — JSON Schema: `type: "integer"`. Whole numbers.
 - **number**: `[double]`, `[float]`, `[decimal]` — JSON Schema: `type: "number"`. Floating-point numbers.
-- **boolean**: `[bool]`, `[System.Boolean]`, `switch` — JSON Schema: `type: "boolean"`. Flags (`switch`) are treated as boolean
+- **boolean**: `[bool]`, `[System.Boolean]` — JSON Schema: `type: "boolean"`.
 
 **Complex types**:
 
@@ -136,7 +136,9 @@ Below is a brief list of PowerShell parameter types that the module automaticall
 **Limitations**:
 
 - `[System.Management.Automation.ActionPreference]`,`[ScriptBlock]` are excluded from the schema generator.
-- `[object]`,`[hashtable]`: treated as `type: "object"
+- `[System.Management.Automation.SwitchParameter]` is currently excluded from the schema generator; switch parameters are not advertised as boolean properties.
+- `[object]`,`[hashtable]`: treated as `type: "object"`.
+- Validation attributes such as `ValidateSet`, `ValidateRange`, `ValidateLength`, and `ValidatePattern` are enforced by PowerShell at runtime but are not currently emitted as JSON Schema constraints.
 
 See the `mcp.InputSchema.getTypeSchema` function in [src/pwsh.mcp/psmcp.core.ps1](../src/pwsh.mcp/psmcp.core.ps1) for details.
 
@@ -540,9 +542,9 @@ Visual Studio Code recognizes only Title and ReadOnlyHint annotations.
 - Use title case
 - Set `ReadOnlyHint = $true` for tools that do not modify state
 
-## Docker Configuration
+## Docker Runtime Example
 
-Running the MCP server in a Docker container isolates the server process from the host. This can improve security and simplify dependency management. Below is an _example configuration for running a PowerShell MCP server in a Docker container_, with volume mounts for development files.
+Docker is an external runtime choice for a PowerShell MCP server; it is not provided or managed by this module. The following example runs a server in a container with volume mounts for development files.
 
 **Example Configuration:** file `.vscode/mcp.json` (workspace-level)
 
