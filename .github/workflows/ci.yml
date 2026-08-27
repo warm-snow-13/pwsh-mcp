@@ -76,8 +76,12 @@ jobs:
         shell: pwsh
         run: |
           Set-PSRepository PSGallery -InstallationPolicy Trusted
+
           Install-Module -Name PSScriptAnalyzer -Force -SkipPublisherCheck
+          Install-Module -Name Pester -RequiredVersion 6.1.0 -Force -SkipPublisherCheck
+
           Get-Module -ListAvailable | Where-Object { $_.Name -eq 'PSScriptAnalyzer' }
+          Get-Module -ListAvailable | Where-Object { $_.Name -eq 'Pester' }
 
       - name: Run PSScriptAnalyzer
         shell: pwsh
