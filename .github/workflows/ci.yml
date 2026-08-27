@@ -101,7 +101,7 @@ jobs:
         shell: pwsh
         run: |
           Write-Output "Run PowerShell CI Script"
-          ./ci.ps1 -action hello
+          # ./ci.ps1 -action hello
           # todo: replace with actual CI actions
 
   test:
