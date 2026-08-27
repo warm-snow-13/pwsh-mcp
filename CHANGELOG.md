@@ -16,6 +16,19 @@ references:
 
 ### Added
 
+## [0.1.6] - 2026-08-27
+
+### Added
+
+- Added an MCP server authoring skill for exposing PowerShell functions as MCP tools.
+
+### Changed
+
+- Simplified `McpToolAttribute` usage and automatic tool registration.
+- Clarified supported parameter extraction and JSON schema generation.
+- Updated the development baseline to PowerShell 7.5 and Pester 6.1.0.
+- Updated MCP client configuration guidance and refreshed project documentation.
+
 ## [0.1.5] - 2026-04-01
 
 ### Added
